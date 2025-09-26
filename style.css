@@ -251,6 +251,10 @@ h1 {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    position: relative;
+    /* Garante que o conteúdo fique no contexto de empilhamento correto */
+    z-index: 1;
+    /* Coloca o conteúdo acima da área de clique do stretched-link */
 }
 
 .card-meta {
@@ -276,6 +280,22 @@ h1 {
 
 .instagram-link:hover {
     color: var(--primary-color);
+}
+
+.stretched-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.stretched-link::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+    /* Fica atrás de outros elementos com z-index > 0 */
+    content: "";
 }
 
 .news-content h3 {
@@ -351,19 +371,7 @@ h1 {
     align-self: flex-start;
     /* Alinha o botão ao início */
     transition: background-color 0.2s ease;
-    position: relative;
-    /* Garante que o botão fique acima do pseudo-elemento */
     z-index: 1;
-}
-
-/* Torna a área do card inteiro clicável */
-.news-content .read-more::after {
-    content: '';
-    position: absolute;
-    /* Estica o pseudo-elemento para cobrir todo o card pai (.news-card) */
-    inset: 0;
-    z-index: 0;
-    /* Garante que o link estendido fique atrás do conteúdo */
 }
 
 .news-content .read-more:hover,
