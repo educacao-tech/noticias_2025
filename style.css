@@ -18,6 +18,7 @@ body {
     margin: var(--spacing-medium);
     background-color: var(--background-color);
     color: var(--text-color);
+    line-height: 1.6; /* Melhora a legibilidade geral */
 }
 
 h1 {
@@ -43,19 +44,30 @@ h1 {
     color: inherit;
     display: flex;
     flex-direction: column;
-    transition: transform 0.2s ease-in-out;
+    /* Transição aprimorada para incluir a sombra */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .news-card:hover {
     transform: translateY(-5px);
+    /* Sombra mais pronunciada para um efeito de "elevação" */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Melhora a acessibilidade para navegação por teclado */
+.news-card:focus-within {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .news-card img {
     width: 100%;
-    height: 180px; /* Altura fixa para as imagens de preview */
-    object-fit: contain; /* Garante que a imagem não seja cortada */
+    height: 180px;
+    /* 'cover' preenche o espaço, criando um visual mais coeso */
+    object-fit: cover; 
     display: block;
-    background-color: #e9e9e9; /* Cor de fundo para preencher espaços vazios do 'contain' */
 }
 
 .news-content {
@@ -89,6 +101,7 @@ h1 {
     font-size: 0.9em;
     align-self: flex-start; /* Alinha o botão ao início */
     margin-top: auto; /* Empurra o botão para baixo */
+    transition: background-color 0.2s ease;
 }
 
 .news-content .read-more:hover {
@@ -107,17 +120,17 @@ h1 {
 
 @media (max-width: 600px) {
     body {
-        margin: var(--spacing-xsmall); /* Menos margem em telas pequenas */
+        margin: var(--spacing-xsmall);
     }
     h1 {
         font-size: 1.8em;
         margin-bottom: var(--spacing-medium);
     }
     .news-content h3 {
-        font-size: 1em; /* Ajusta o tamanho da fonte do título */
+        font-size: 1em;
     }
     .news-card img {
-        height: 140px; /* Reduz a altura da imagem para telas menores */
+        height: 140px;
     }
     .news-content p {
         font-size: 0.85em;
@@ -126,12 +139,12 @@ h1 {
 
 @media (max-width: 480px) {
     .news-preview-container {
-        grid-template-columns: 1fr; /* Uma única coluna em telas muito pequenas */
+        grid-template-columns: 1fr;
     }
     .news-card {
-        min-width: unset; /* Remove min-width para permitir que a coluna ocupe todo o espaço */
+        min-width: unset;
     }
     .news-card img {
-        height: 180px; /* Pode aumentar um pouco a altura da imagem em coluna única */
+        height: 180px;
     }
 }
