@@ -48,8 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
         newsCards.forEach(card => {
             const titleEl = card.querySelector('h3');
             const descriptionEl = card.querySelector('p');
-            card.dataset.originalTitle = titleEl.textContent;
-            card.dataset.originalDescription = descriptionEl.textContent;
+            if (titleEl) card.dataset.originalTitle = titleEl.textContent;
+            if (descriptionEl) card.dataset.originalDescription = descriptionEl.textContent;
         });
 
         // 2. Função Debounce para otimizar a performance da busca
@@ -61,22 +61,23 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         };
 
-        // 3. Função que executa a busca e o destaque
-        const handleSearch = (event) => {
-            const searchTerm = event.target.value.toLowerCase().trim();
+        // 3. Função que aplica o filtro de texto
+        const applyTextFilter = () => {
+            const searchTerm = searchInput.value.toLowerCase().trim();
             let visibleCardsCount = 0;
 
             newsCards.forEach(card => {
                 const titleEl = card.querySelector('h3');
                 const descriptionEl = card.querySelector('p');
-                const originalTitle = card.dataset.originalTitle;
-                const originalDescription = card.dataset.originalDescription;
+                const originalTitle = card.dataset.originalTitle || '';
+                const originalDescription = card.dataset.originalDescription || '';
 
                 const isVisible = !searchTerm ||
                     originalTitle.toLowerCase().includes(searchTerm) ||
                     originalDescription.toLowerCase().includes(searchTerm);
 
-                card.classList.toggle('hidden', !isVisible);
+                // Usamos um timeout de 0 para garantir que a animação de filtro funcione corretamente
+                setTimeout(() => card.classList.toggle('hidden', !isVisible), 0);
 
                 if (isVisible) {
                     visibleCardsCount++;
@@ -95,8 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
             noResultsMessage.classList.toggle('hidden', visibleCardsCount > 0);
         };
 
-        // 4. Adiciona o "ouvinte" de evento ao campo de busca
-        searchInput.addEventListener('input', debounce(handleSearch));
+        // 4. Adiciona os "ouvintes" de evento
+        searchInput.addEventListener('input', debounce(applyTextFilter));
     };
 
     // Inicia a lógica do filtro
@@ -110,4 +111,57 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
     animateCardsOnLoad();
+
+    // --- LÓGICA DE "MOSTRAR MAIS" PARA O TEXTO ---
+    const initShowMore = () => {
+        const newsCards = document.querySelectorAll('.news-card');
+
+        newsCards.forEach(card => {
+            const description = card.querySelector('.news-content p');
+            if (!description) return;
+            
+            // Agrupa o parágrafo em um wrapper para melhor controle do layout
+            const textWrapper = document.createElement('div');
+            textWrapper.className = 'text-wrapper';
+            description.parentNode.insertBefore(textWrapper, description);
+            textWrapper.appendChild(description);
+
+            // Verifica se o texto real é maior que a área visível
+            if (description.scrollHeight > description.clientHeight) {
+                const showMoreBtn = document.createElement('button');
+                showMoreBtn.textContent = 'Mostrar mais';
+                showMoreBtn.className = 'show-more-btn';
+                textWrapper.appendChild(showMoreBtn);
+
+                showMoreBtn.addEventListener('click', () => {
+                    description.classList.toggle('expanded');
+                    if (description.classList.contains('expanded')) {
+                        showMoreBtn.textContent = 'Mostrar menos';
+                    } else {
+                        showMoreBtn.textContent = 'Mostrar mais';
+                    }
+                });
+            }
+        });
+    };
+    initShowMore();
+
+    // --- LÓGICA DO BOTÃO "VOLTAR AO TOPO" ---
+    const backToTopButton = document.getElementById('back-to-top');
+
+    const handleScroll = () => {
+        // Mostra o botão se o usuário rolou mais de 300px para baixo
+        if (window.scrollY > 300) {
+            backToTopButton.classList.add('visible');
+        } else {
+            backToTopButton.classList.remove('visible');
+        }
+    };
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    backToTopButton.addEventListener('click', scrollToTop);
 });
