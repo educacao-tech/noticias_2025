@@ -61,6 +61,18 @@
     },
     {
         "published": true,
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3562_570_370_202508291036204614520.jpg",
+        "altText": "Concurso de leitura para alunos da rede municipal",
+        "date": "2025-08-29",
+        "displayDate": "29 de Agosto de 2025",
+        "instagramLink": "",
+        "link": "https://www.batatais.sp.gov.br/noticias/secretaria-de-educacao-lanca-o-concurso-de-leitura-para-alunos-da-rede-municipal",
+        "title": "Secretaria de Educação lança o concurso de leitura para alunos da rede municipal",
+        "description": "A Prefeitura de Batatais, por meio da Secretaria Municipal de Educação, está realizando uma programação especial na Semana Cultural e Literária 2025, que seguirá até o dia 5 de setembro. O evento busca aproximar crianças e jovens do universo dos livros, despertando o interesse pela literatura por meio de experiências artísticas e educativas.",
+        "readMoreText": "Leia Mais"
+    },
+    {
+        "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3486_570_370_202506111450387136200.jpg",
         "altText": "Representantes da prefeitura e educadores em reunião para reavaliação do Plano Municipal da Primeira Infância.",
         "date": "2025-06-11",
