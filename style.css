@@ -54,6 +54,7 @@ h1 {
     text-decoration: none;
     color: inherit;
     display: flex;
+    position: relative; /* Necessário para o pseudo-elemento do link */
     flex-direction: column;
     /* Transição aprimorada para incluir a sombra */
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -76,8 +77,8 @@ h1 {
 .news-card img {
     width: 100%;
     height: 180px;
-    /* 'cover' preenche o espaço, criando um visual mais coeso */
-    object-fit: cover; 
+    /* 'contain' garante que a imagem inteira seja visível, sem cortes */
+    object-fit: contain; 
     display: block;
 }
 
@@ -113,17 +114,22 @@ h1 {
     align-self: flex-start; /* Alinha o botão ao início */
     margin-top: auto; /* Empurra o botão para baixo */
     transition: background-color 0.2s ease;
+    position: relative; /* Garante que o botão fique acima do pseudo-elemento */
+    z-index: 1;
+}
+
+/* Torna a área do card inteiro clicável */
+.news-content .read-more::after {
+    content: '';
+    position: absolute;
+    /* Estica o pseudo-elemento para cobrir todo o card pai (.news-card) */
+    inset: 0;
+    z-index: 0; /* Garante que o link estendido fique atrás do conteúdo */
 }
 
 .news-content .read-more:hover,
 .news-content .read-more:focus-visible {
     background-color: var(--secondary-color);
-    outline: none; /* O foco já é tratado pelo card pai com focus-within */
-}
-
-.news-content .read-more:focus-visible {
-    outline: 2px solid var(--secondary-color);
-    outline-offset: 2px;
 }
 
 /* Media Queries para Responsividade */
