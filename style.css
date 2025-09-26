@@ -326,8 +326,7 @@ h1 {
 }
 
 .news-content p.expanded {
-    max-height: 500px;
-    /* Um valor alto para garantir que todo o texto seja exibido */
+    /* A altura agora é controlada via JavaScript para se ajustar perfeitamente ao conteúdo */
 }
 
 /* Gradiente que indica que há mais texto para ler */

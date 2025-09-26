@@ -226,15 +226,21 @@ const App = {
                 description.parentNode.insertBefore(textWrapper, description);
                 textWrapper.appendChild(description);
 
-                if (description.scrollHeight > description.clientHeight) {
+                // Verifica se o texto real é maior que a área visível
+                const isOverflowing = description.scrollHeight > description.clientHeight;
+
+                if (isOverflowing) {
                     const showMoreBtn = document.createElement('button');
                     showMoreBtn.textContent = 'Mostrar mais';
                     showMoreBtn.className = 'show-more-btn';
                     textWrapper.appendChild(showMoreBtn);
 
                     showMoreBtn.addEventListener('click', () => {
-                        description.classList.toggle('expanded');
-                        showMoreBtn.textContent = description.classList.contains('expanded') ? 'Mostrar menos' : 'Mostrar mais';
+                        const isExpanded = description.classList.toggle('expanded');
+                        showMoreBtn.textContent = isExpanded ? 'Mostrar menos' : 'Mostrar mais';
+
+                        // Define a altura máxima dinamicamente para se ajustar ao conteúdo
+                        description.style.maxHeight = isExpanded ? `${description.scrollHeight}px` : null;
                     });
                 }
             });
