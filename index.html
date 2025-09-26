@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prévia das Notícias</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <main>
@@ -13,102 +15,172 @@
             <div class="theme-switcher-container">
                 <button id="theme-toggle" class="theme-toggle-button" aria-label="Alternar para o tema escuro">
                     <span class="visually-hidden">Alternar tema</span>
-                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 12c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1H3c-.55 0-1 .45-1 1zm18 0c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1zm-8-8c.55 0 1-.45 1-1V1c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm0 16c.55 0 1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zM5.64 5.64c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L5.64 2.81c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.42zM18.36 18.36c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.41-1.41c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.41zM5.64 18.36c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41zM18.36 5.64c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41z"/></svg>
-                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.64-.11 2.41-.31-1.12-.9-1.91-2.18-1.91-3.69 0-2.48 2.02-4.5 4.5-4.5.31 0 .62.03.91.09C19.53 6.88 16.03 3 12 3z"/></svg>
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                        width="24" height="24">
+                        <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 12c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1H3c-.55 0-1 .45-1 1zm18 0c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1zm-8-8c.55 0 1-.45 1-1V1c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm0 16c.55 0 1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zM5.64 5.64c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L5.64 2.81c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.42zM18.36 18.36c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.41-1.41c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.41zM5.64 18.36c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41zM18.36 5.64c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41z" />
+                    </svg>
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                        width="24" height="24">
+                        <path
+                            d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.64-.11 2.41-.31-1.12-.9-1.91-2.18-1.91-3.69 0-2.48 2.02-4.5 4.5-4.5.31 0 .62.03.91.09C19.53 6.88 16.03 3 12 3z" />
+                    </svg>
                 </button>
             </div>
 
             <h1 id="latest-news-title">Últimas Notícias e Entrevistas</h1>
-    
+
             <div class="search-container">
                 <label for="search-input" class="visually-hidden">Filtrar notícias por título ou descrição</label>
                 <input type="search" id="search-input" placeholder="Buscar por título ou trecho da notícia...">
             </div>
 
             <div class="news-preview-container">
-                
+
                 <p class="no-results-message hidden">Nenhum resultado encontrado para a sua busca.</p>
 
-                
+
                 <article class="news-card">
-                    <img src="https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3586_570_370_202509221318008357940.png" alt="Selo do prêmio Alfabetiza Juntos SP com fundo azul e texto em branco e amarelo." loading="lazy">
+                    <img src="https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3586_570_370_202509221318008357940.png"
+                        alt="Selo do prêmio Alfabetiza Juntos SP com fundo azul e texto em branco e amarelo."
+                        loading="lazy">
                     <div class="news-content">
                         <div class="card-meta">
                             <time class="news-date" datetime="2025-09-22">22 de Setembro de 2025</time>
-                            <a href="https://www.instagram.com/p/DO6U_vxjZCK/?img_index=1" target="_blank" rel="noopener noreferrer" class="instagram-link" aria-label="Ver esta notícia no Instagram">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                            <a href="https://www.instagram.com/p/DO6U_vxjZCK/?img_index=1" target="_blank"
+                                rel="noopener noreferrer" class="instagram-link"
+                                aria-label="Ver esta notícia no Instagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                </svg>
                             </a>
                         </div>
                         <h3>Escola Municipal de Batatais recebe Prêmio de Excelência Educacional do Governo de SP</h3>
-                        <p>A Escola Municipal “Professora Anna Bonagura de Andrade”, localizada no Jardim Elena, em Batatais, foi reconhecida com o Prêmio de Excelência Educacional, concedido pelo Governo do Estado de São Paulo, por ter atingido as metas do IEE (Índice de Excelência Educacional) no âmbito do programa Alfabetiza Juntos SP.</p>
+                        <p>A Escola Municipal “Professora Anna Bonagura de Andrade”, localizada no Jardim Elena, em
+                            Batatais, foi reconhecida com o Prêmio de Excelência Educacional, concedido pelo Governo do
+                            Estado de São Paulo, por ter atingido as metas do IEE (Índice de Excelência Educacional) no
+                            âmbito do programa Alfabetiza Juntos SP.</p>
                         <div class="card-footer">
-                            <a href="https://www.batatais.sp.gov.br/noticias/escola-municipal-de-batatais-recebe-premio-de-excelencia-educacional-do-governo-de-sp" target="_blank" rel="noopener noreferrer" class="read-more" aria-label="Leia mais sobre o Prêmio de Excelência Educacional recebido pela Escola Municipal de Batatais">Leia Mais</a>
+                            <a href="https://www.batatais.sp.gov.br/noticias/escola-municipal-de-batatais-recebe-premio-de-excelencia-educacional-do-governo-de-sp"
+                                target="_blank" rel="noopener noreferrer" class="read-more"
+                                aria-label="Leia mais sobre o Prêmio de Excelência Educacional recebido pela Escola Municipal de Batatais">Leia
+                                Mais</a>
                         </div>
                     </div>
                 </article>
 
                 <article class="news-card">
-                    <img src="https://www.educadoraonline.com.br/site/wp-content/uploads/2025/09/CAPA-CTV-18-09-2025-ESCOLA-OURO-555x312.jpg" alt="Selo do prêmio Alfabetiza Juntos SP com fundo azul e texto em branco e amarelo." loading="lazy">
+                    <img src="https://www.educadoraonline.com.br/site/wp-content/uploads/2025/09/CAPA-CTV-18-09-2025-ESCOLA-OURO-555x312.jpg"
+                        alt="Selo do prêmio Alfabetiza Juntos SP com fundo azul e texto em branco e amarelo."
+                        loading="lazy">
                     <div class="news-content">
                         <div class="card-meta">
-                            <time class="news-date" datetime="2025-09-18">18 de Setembro de 2025</time>
-                            <a href="https://www.instagram.com/p/DO6U_vxjZCK/?img_index=1" target="_blank" rel="noopener noreferrer" class="instagram-link" aria-label="Ver esta notícia no Instagram">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                            <time class="news-date" datetime="2025-09-18">18 de Setembro 2025</time>
+                            <a href="https://www.instagram.com/p/DO6U_vxjZCK/?img_index=1" target="_blank"
+                                rel="noopener noreferrer" class="instagram-link"
+                                aria-label="Ver esta notícia no Instagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                </svg>
                             </a>
                         </div>
                         <h3>Batatais tem uma Escola Ouro</h3>
-                        <p>A Escola Municipal “Professora Anna Bonagura de Andrade”, localizada no Jardim Elena, em Batatais, foi reconhecida com o Prêmio de Excelência Educacional, concedido pelo Governo do Estado de São Paulo, por ter atingido as metas do IEE (Índice de Excelência Educacional) no âmbito do programa Alfabetiza Juntos SP.</p>
+                        <p>A Escola Municipal “Professora Anna Bonagura de Andrade”, localizada no Jardim Elena, em
+                            Batatais, foi reconhecida com o Prêmio de Excelência Educacional, concedido pelo Governo do
+                            Estado de São Paulo, por ter atingido as metas do IEE (Índice de Excelência Educacional) no
+                            âmbito do programa Alfabetiza Juntos SP.</p>
                         <div class="card-footer">
-                            <a href="https://www.batatais.sp.gov.br/noticias/escola-municipal-de-batatais-recebe-premio-de-excelencia-educacional-do-governo-de-sp" target="_blank" rel="noopener noreferrer" class="read-more" aria-label="Leia mais sobre o Prêmio de Excelência Educacional recebido pela Escola Municipal de Batatais">Assista Agora</a>
+                            <a href="https://www.batatais.sp.gov.br/noticias/escola-municipal-de-batatais-recebe-premio-de-excelencia-educacional-do-governo-de-sp"
+                                target="_blank" rel="noopener noreferrer" class="read-more"
+                                aria-label="Leia mais sobre o Prêmio de Excelência Educacional recebido pela Escola Municipal de Batatais">Assista
+                                Agora</a>
                         </div>
                     </div>
                 </article>
-                
+
                 <article class="news-card">
-                    <img src="https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3486_570_370_202506111450387136200.jpg" alt="Representantes da prefeitura e educadores em reunião para reavaliação do Plano Municipal da Primeira Infância." loading="lazy">
+                    <img src="https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3486_570_370_202506111450387136200.jpg"
+                        alt="Representantes da prefeitura e educadores em reunião para reavaliação do Plano Municipal da Primeira Infância."
+                        loading="lazy">
                     <div class="news-content">
                         <div class="card-meta">
                             <time class="news-date" datetime="2025-06-11">11 de Junho de 2025</time>
-                            <a href="https://www.instagram.com/p/C8S5953LdY_/" target="_blank" rel="noopener noreferrer" class="instagram-link" aria-label="Ver esta notícia no Instagram">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                            <a href="https://www.instagram.com/p/C8S5953LdY_/" target="_blank" rel="noopener noreferrer"
+                                class="instagram-link" aria-label="Ver esta notícia no Instagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                </svg>
                             </a>
                         </div>
                         <h3>Prefeitura realiza 3ª reavaliação do Plano Municipal da Primeira Infância</h3>
-                        <p>Acompanhe a reavaliação do plano que visa melhorias contínuas para a primeira infância na cidade, com foco em desenvolvimento e bem-estar.</p>
+                        <p>Acompanhe a reavaliação do plano que visa melhorias contínuas para a primeira infância na
+                            cidade, com foco em desenvolvimento e bem-estar.</p>
                         <div class="card-footer">
-                            <a href="https://www.batatais.sp.gov.br/noticias/prefeitura-realiza-3%C2%AA-reavaliacao-do-plano-municipal-da-primeira-infancia" target="_blank" rel="noopener noreferrer" class="read-more" aria-label="Leia mais sobre a 3ª reavaliação do Plano Municipal da Primeira Infância">Leia Mais</a>
+                            <a href="https://www.batatais.sp.gov.br/noticias/prefeitura-realiza-3%C2%AA-reavaliacao-do-plano-municipal-da-primeira-infancia"
+                                target="_blank" rel="noopener noreferrer" class="read-more"
+                                aria-label="Leia mais sobre a 3ª reavaliação do Plano Municipal da Primeira Infância">Leia
+                                Mais</a>
                         </div>
                     </div>
                 </article>
-               
+
                 <article class="news-card">
-                    <img src="https://www.educadoraonline.com.br/site/wp-content/uploads/2025/06/CAPA-FS-27-06-2025-CONFERENCIA-555x312.jpg" alt="Capa da Conferência de Avaliação do Plano Municipal de Educação, com logotipos e título do evento." loading="lazy">
+                    <img src="https://www.educadoraonline.com.br/site/wp-content/uploads/2025/06/CAPA-FS-27-06-2025-CONFERENCIA-555x312.jpg"
+                        alt="Capa da Conferência de Avaliação do Plano Municipal de Educação, com logotipos e título do evento."
+                        loading="lazy">
                     <div class="news-content">
                         <div class="card-meta">
                             <time class="news-date" datetime="2025-06-27">27 de Junho de 2025</time>
-                            <a href="https://www.instagram.com/p/DO6U_vxjZCK/?img_index=1" target="_blank" rel="noopener noreferrer" class="instagram-link" aria-label="Ver esta notícia no Instagram">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                            <a href="https://www.instagram.com/p/DO6U_vxjZCK/?img_index=1" target="_blank"
+                                rel="noopener noreferrer" class="instagram-link"
+                                aria-label="Ver esta notícia no Instagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                </svg>
                             </a>
                         </div>
                         <h3>Avaliação do Plano Municipal de Educação (Entrevista)</h3>
-                        <p>Assista à entrevista completa sobre a avaliação do Plano Municipal de Educação, com insights e discussões aprofundadas.</p>
+                        <p>Assista à entrevista completa sobre a avaliação do Plano Municipal de Educação, com insights
+                            e discussões aprofundadas.</p>
                         <div class="card-footer">
-                            <a href="https://youtu.be/qhEGb05qn_g" target="_blank" rel="noopener noreferrer" class="read-more" aria-label="Assista à entrevista sobre a Avaliação do Plano Municipal de Educação no YouTube">Assista Agora</a>
+                            <a href="https://youtu.be/qhEGb05qn_g" target="_blank" rel="noopener noreferrer"
+                                class="read-more"
+                                aria-label="Assista à entrevista sobre a Avaliação do Plano Municipal de Educação no YouTube">Assista
+                                Agora</a>
                         </div>
                     </div>
                 </article>
-    
+
             </div>
         </section>
     </main>
 
     <button id="back-to-top" class="back-to-top-button" title="Voltar ao topo">
         <span class="visually-hidden">Voltar ao topo</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z" />
+        </svg>
     </button>
 
     <!-- Adiciona o script para a funcionalidade de filtro -->
     <script src="script.js"></script>
 
 </body>
+
 </html>
