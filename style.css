@@ -12,6 +12,15 @@
     --spacing-xsmall: 10px;
 }
 
+/* Reset simples e box-sizing para um layout mais previsível */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     /* Fonte aprimorada para melhor legibilidade em diferentes sistemas */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -24,7 +33,8 @@ body {
 h1 {
     text-align: center;
     color: var(--text-color);
-    margin-bottom: var(--spacing-large);
+    /* Usando padding para espaçamento interno e margin para externo */
+    padding: var(--spacing-medium) 0 var(--spacing-large);
 }
 
 .news-preview-container {
@@ -32,7 +42,8 @@ h1 {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--spacing-medium);
     max-width: 1200px;
-    margin: 0 auto;
+    /* Adiciona padding nas laterais para não colar nas bordas da tela */
+    padding: 0 var(--spacing-medium);
 }
 
 .news-card {
@@ -55,8 +66,8 @@ h1 {
 }
 
 /* Melhora a acessibilidade para navegação por teclado */
+.news-card:focus-visible,
 .news-card:focus-within {
-    outline: 3px solid var(--primary-color);
     outline-offset: 2px;
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
@@ -104,8 +115,15 @@ h1 {
     transition: background-color 0.2s ease;
 }
 
-.news-content .read-more:hover {
+.news-content .read-more:hover,
+.news-content .read-more:focus-visible {
     background-color: var(--secondary-color);
+    outline: none; /* O foco já é tratado pelo card pai com focus-within */
+}
+
+.news-content .read-more:focus-visible {
+    outline: 2px solid var(--secondary-color);
+    outline-offset: 2px;
 }
 
 /* Media Queries para Responsividade */
@@ -120,7 +138,7 @@ h1 {
 
 @media (max-width: 600px) {
     body {
-        margin: var(--spacing-xsmall);
+        margin: 0; /* Remove a margem do body para o container controlar */
     }
     h1 {
         font-size: 1.8em;
@@ -139,6 +157,7 @@ h1 {
 
 @media (max-width: 480px) {
     .news-preview-container {
+        padding: 0 var(--spacing-small);
         grid-template-columns: 1fr;
     }
     .news-card {
