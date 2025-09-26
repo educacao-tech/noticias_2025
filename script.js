@@ -101,4 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicia a lógica do filtro
     initFilter();
+
+    // --- ANIMAÇÃO DE ENTRADA DOS CARDS ---
+    const animateCardsOnLoad = () => {
+        const newsCards = document.querySelectorAll('.news-card');
+        newsCards.forEach((card, index) => {
+            setTimeout(() => card.classList.add('visible'), index * 100); // Atraso de 100ms entre cada card
+        });
+    };
+    animateCardsOnLoad();
 });
