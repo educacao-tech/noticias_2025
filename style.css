@@ -5,11 +5,22 @@
     --light-text-color: #666;
     --background-color: #f4f4f4;
     --card-bg-color: #fff;
+    --border-color: #ccc;
     --border-radius: 8px;
     --spacing-large: 30px;
     --spacing-medium: 20px;
     --spacing-small: 15px;
     --spacing-xsmall: 10px;
+}
+
+html[data-theme="dark"] {
+    --primary-color: #0d6efd; /* Azul um pouco mais vibrante para o modo escuro */
+    --secondary-color: #0a58ca;
+    --text-color: #e0e0e0;
+    --light-text-color: #a0a0a0;
+    --background-color: #121212;
+    --card-bg-color: #1e1e1e;
+    --border-color: #444;
 }
 
 /* Reset simples e box-sizing para um layout mais previsível */
@@ -28,6 +39,76 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6; /* Melhora a legibilidade geral */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Classe utilitária para esconder elementos visualmente, mas mantê-los para leitores de tela */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.theme-switcher-container {
+    text-align: right;
+    padding: 0 var(--spacing-medium) var(--spacing-small);
+}
+
+.theme-toggle-button {
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    padding: 4px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    transition: background-color 0.2s ease, transform 0.3s ease;
+}
+
+.theme-toggle-button:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+}
+
+.theme-toggle-button .moon-icon {
+    display: none;
+}
+
+html[data-theme="dark"] .theme-toggle-button .sun-icon {
+    display: none;
+}
+
+html[data-theme="dark"] .theme-toggle-button .moon-icon {
+    display: block;
+}
+
+.search-container {
+    max-width: 600px;
+    margin: 0 auto var(--spacing-large);
+    padding: 0 var(--spacing-medium);
+}
+
+#search-input {
+    width: 100%;
+    padding: var(--spacing-xsmall) var(--spacing-small);
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#search-input:focus-visible {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 25%, transparent);
 }
 
 h1 {
@@ -46,6 +127,22 @@ h1 {
     padding: 0 var(--spacing-medium);
 }
 
+/* Regra para animar a saída dos cards.
+   Como esta regra é mais específica (.news-card.hidden) do que a regra .hidden genérica,
+   ela será aplicada aos cards, e a animação funcionará corretamente. */
+.news-card.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+    max-height: 0;
+    margin-bottom: 0;
+    /* Adicionamos padding-top e bottom para o colapso ser mais suave */
+    padding-top: 0;
+    padding-bottom: 0;
+    /* A borda também precisa ser removida na animação */
+    border: 0;
+}
+
 .news-card {
     background-color: var(--card-bg-color);
     border-radius: var(--border-radius);
@@ -56,8 +153,8 @@ h1 {
     display: flex;
     position: relative; /* Necessário para o pseudo-elemento do link */
     flex-direction: column;
-    /* Transição aprimorada para incluir a sombra */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    /* Transição para todos os efeitos, incluindo a animação de filtro */
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, max-height 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease, background-color 0.3s ease;
 }
 
 .news-card:hover {
@@ -130,6 +227,27 @@ h1 {
 .news-content .read-more:hover,
 .news-content .read-more:focus-visible {
     background-color: var(--secondary-color);
+}
+
+/* Estilo para o texto destacado pela busca */
+mark {
+    background-color: color-mix(in srgb, var(--primary-color) 30%, transparent);
+    color: inherit;
+    border-radius: 3px;
+}
+
+/* Classe genérica para esconder elementos (como a mensagem de 'nenhum resultado').
+   Deve vir DEPOIS das regras de animação para garantir a ordem correta de cascata. */
+.hidden {
+    display: none;
+}
+
+.no-results-message {
+    grid-column: 1 / -1; /* Faz a mensagem ocupar toda a largura do grid */
+    text-align: center;
+    color: var(--light-text-color);
+    font-size: 1.1em;
+    padding: var(--spacing-large) 0;
 }
 
 /* Media Queries para Responsividade */
