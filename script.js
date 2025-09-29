@@ -16,8 +16,16 @@ const App = {
      * Módulo para gerenciar o tema (claro/escuro).
      */
     theme: {
+        // Centralizamos os paths dos SVGs para fácil manutenção
+        icons: {
+            sun: '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 12c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1H3c-.55 0-1 .45-1 1zm18 0c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1zm-8-8c.55 0 1-.45 1-1V1c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm0 16c.55 0 1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zM5.64 5.64c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L5.64 2.81c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.42zM18.36 18.36c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.41-1.41c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.41zM5.64 18.36c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41zM18.36 5.64c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41z" />',
+            moon: '<path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.64-.11 2.41-.31-1.12-.9-1.91-2.18-1.91-3.69 0-2.48 2.02-4.5 4.5-4.5.31 0 .62.03.91.09C19.53 6.88 16.03 3 12 3z" />'
+        },
+
         init() {
             this.themeToggle = document.getElementById('theme-toggle');
+            this.themeIcon = document.getElementById('theme-icon');
+            this.themeStatus = document.getElementById('theme-status');
             this.htmlEl = document.documentElement;
             this.setInitialTheme();
             this.addEventListeners();
@@ -46,8 +54,13 @@ const App = {
         update(theme) {
             this.htmlEl.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
-            const newLabel = theme === 'dark' ? 'Alternar para o tema claro' : 'Alternar para o tema escuro';
-            this.themeToggle.setAttribute('aria-label', newLabel);
+
+            const isDark = theme === 'dark';
+            this.themeIcon.innerHTML = isDark ? this.icons.sun : this.icons.moon;
+            
+            // Anuncia a mudança para leitores de tela
+            const statusMessage = `Tema alterado para ${isDark ? 'escuro' : 'claro'}.`;
+            this.themeStatus.textContent = statusMessage;
         }
     },
 
@@ -77,9 +90,16 @@ const App = {
             const publishedNews = newsData
                 .filter(article => article.published)
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
-            const newsHtml = publishedNews.map(article => this.createArticleHtml(article)).join('');
-            // Insere o HTML gerado no container, logo após a mensagem de "nenhum resultado"
+
             const noResultsEl = this.container.querySelector('.no-results-message');
+
+            if (publishedNews.length === 0) {
+                noResultsEl.textContent = 'Nenhuma notícia publicada no momento.';
+                noResultsEl.classList.remove('hidden');
+                return;
+            }
+
+            const newsHtml = publishedNews.map(article => this.createArticleHtml(article)).join('');
             noResultsEl.insertAdjacentHTML('afterend', newsHtml);
         },
 
@@ -101,7 +121,7 @@ const App = {
                         </a>
                         <p>${article.description}</p>
                         <div class="card-footer">
-                            <span class="read-more" aria-hidden="true">${article.readMoreText}</span>
+                            <span class="read-more">${article.readMoreText}</span>
                         </div>
                     </div>
                 </article>

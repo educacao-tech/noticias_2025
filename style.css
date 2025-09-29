@@ -94,18 +94,6 @@ body {
     background-color: rgba(128, 128, 128, 0.2);
 }
 
-.theme-toggle-button .moon-icon {
-    display: none;
-}
-
-html[data-theme="dark"] .theme-toggle-button .sun-icon {
-    display: none;
-}
-
-html[data-theme="dark"] .theme-toggle-button .moon-icon {
-    display: block;
-}
-
 .search-container {
     max-width: 600px;
     margin: 0 auto var(--spacing-large);
@@ -207,9 +195,8 @@ h1 {
 
 .news-card:first-child img {
     height: 100%;
-    /* A imagem ocupa toda a altura do card */
-    object-fit: contain;
-    /* 'contain' garante que a imagem inteira seja visível */
+    /* A imagem ocupa toda a altura do card, cobrindo o espaço */
+    object-fit: cover;
     border-radius: var(--border-radius) 0 0 var(--border-radius);
 }
 
