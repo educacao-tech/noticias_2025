@@ -1,17 +1,5 @@
 [
     {
-        "published": false,
-        "imageUrl": "https://via.placeholder.com/570x370.png?text=Imagem+da+Notícia",
-        "altText": "Descrição da imagem aqui",
-        "date": "AAAA-MM-DD",
-        "displayDate": "DD de Mês de AAAA",
-        "instagramLink": "",
-        "link": "",
-        "title": "Título da Nova Notícia",
-        "description": "Descrição da nova notícia aqui. Copie e cole este bloco para criar uma nova entrada.",
-        "readMoreText": "Leia Mais"
-    },
-    {
         "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3586_570_370_202509221318008357940.png",
         "altText": "Selo do prêmio Alfabetiza Juntos SP com fundo azul e texto em branco e amarelo.",
@@ -85,14 +73,14 @@
     },
     {
         "published": true,
-        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3486_570_370_202506111450387136200.jpg",
-        "altText": "Representantes da prefeitura e educadores em reunião para reavaliação do Plano Municipal da Primeira Infância.",
-        "date": "2025-06-11",
-        "displayDate": "11 de Junho de 2025",
-        "instagramLink": "",
-        "link": "https://www.batatais.sp.gov.br/noticias/prefeitura-realiza-3%C2%AA-reavaliacao-do-plano-municipal-da-primeira-infancia",
-        "title": "Prefeitura realiza 3ª reavaliação do Plano Municipal da Primeira Infância",
-        "description": "Acompanhe a reavaliação do plano que visa melhorias contínuas para a primeira infância na cidade, com foco em desenvolvimento e bem-estar.",
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3546_570_370_202508141714000999400.jpg",
+        "altText": "",
+        "date": "2025-08-14",
+        "displayDate": "14 de Agosto de 2025",
+        "instagramLink": "https://www.instagram.com/prefeituradebatatais/p/DNYRH80N7L9/",
+        "link": "https://www.batatais.sp.gov.br/noticias/antonella-e-eleita-prefeita-mirim-de-batatais-e-representara-o-municipio-na-gincana-intermunicipal-pelo-meio-ambiente",
+        "title": "Antonella é eleita prefeita mirim de Batatais e representará o município na Gincana Intermunicipal pelo Meio Ambiente",
+        "description": "O município de Batatais já tem seus representantes para a edição 2025 da Gima (Gincana Intermunicipal pelo Meio Ambiente), que acontece no dia 23 de agosto, na cidade de Franca. Após votação aberta à comunidade, Antonella Pereira Valentini e Leonardo Fernandes Flausino, da EMEB Professora Anna Bonagura de Andrade, foram eleitos prefeita e vice-prefeito mirim, com 58,9% dos votos.",
         "readMoreText": "Leia Mais"
     },
     {
@@ -106,5 +94,17 @@
         "title": "Avaliação do Plano Municipal de Educação (Entrevista)",
         "description": "Assista à entrevista completa sobre a avaliação do Plano Municipal de Educação, com insights e discussões aprofundadas.",
         "readMoreText": "Assista Agora"
+    },
+    {
+        "published": true,
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3486_570_370_202506111450387136200.jpg",
+        "altText": "Representantes da prefeitura e educadores em reunião para reavaliação do Plano Municipal da Primeira Infância.",
+        "date": "2025-06-11",
+        "displayDate": "11 de Junho de 2025",
+        "instagramLink": "",
+        "link": "https://www.batatais.sp.gov.br/noticias/prefeitura-realiza-3%C2%AA-reavaliacao-do-plano-municipal-da-primeira-infancia",
+        "title": "Prefeitura realiza 3ª reavaliação do Plano Municipal da Primeira Infância",
+        "description": "Acompanhe a reavaliação do plano que visa melhorias contínuas para a primeira infância na cidade, com foco em desenvolvimento e bem-estar.",
+        "readMoreText": "Leia Mais"
     }
 ]
