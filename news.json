@@ -1,4 +1,28 @@
 [
+   {
+        "published": false,
+        "imageUrl": "",
+        "altText": "",
+        "date": "2025-09-30",
+        "displayDate": "30 de Setembro de 2025",
+        "instagramLink": "",
+        "link": "",
+        "title": "",
+        "description": "",
+        "readMoreText": "Assista Agora"
+    },
+    {
+        "published": true,
+        "imageUrl": "https://www.educadoraonline.com.br/site/wp-content/uploads/2025/09/CAPA-FS-30-09-2025-EPTV-555x312.jpg",
+        "altText": "Reportagem sobre estudantes de Batatais que foram destaques regionais.",
+        "date": "2025-09-30",
+        "displayDate": "30 de Setembro de 2025",
+        "instagramLink": "",
+        "link": "https://www.educadoraonline.com.br/site/2025/09/30/estudantes-batataenses-sao-destaques-regional/",
+        "title": "Estudantes batataenses são destaques regional",
+        "description": "",
+        "readMoreText": "Assista Agora"
+    },
     {
         "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3586_570_370_202509221318008357940.png",
@@ -11,6 +35,7 @@
         "description": "A Escola Municipal “Professora Anna Bonagura de Andrade”, localizada no Jardim Elena, em Batatais, foi reconhecida com o Prêmio de Excelência Educacional, concedido pelo Governo do Estado de São Paulo, por ter atingido as metas do IEE (Índice de Excelência Educacional) no âmbito do programa Alfabetiza Juntos SP.",
         "readMoreText": "Leia Mais"
     },
+ 
     {
         "published": true,
         "imageUrl": "https://www.educadoraonline.com.br/site/wp-content/uploads/2025/09/CAPA-CTV-18-09-2025-ESCOLA-OURO-555x312.jpg",
@@ -26,7 +51,7 @@
     {
         "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3584_570_370_202509181022352136780.jpeg",
-        "altText": "Alunas da Ginástica Olímpica de Batatais conquistam pódios em competição na cidade de BauruDescrição da imagem aqui",
+        "altText": "Alunas da Ginástica Olímpica de Batatais no pódio durante competição na cidade de Bauru.",
         "date": "2025-09-18",
         "displayDate": "18 de Setembro de 2025",
         "instagramLink": "https://www.instagram.com/p/DOvzwAcDZoy/?img_index=1",
@@ -44,7 +69,7 @@
         "instagramLink": "https://www.instagram.com/p/DOeCvFADUcM/?igsh=ajlzcWp1ZDI5aTJn",
         "link": "https://www.batatais.sp.gov.br/noticias/prefeitura-de-batatais-abre-inscricoes-para-vagas-em-creches-para-o-ano-de-2026",
         "title": "Prefeitura de batatais abre inscrições para vagas em creches para o ano de 2026",
-        "description": "A Prefeitura de Batatais, por meio da Secretaria de Educação, informa que as inscrições para vagas em creches da rede municipal e conveniadas estão abertas até 11 de outubro de 2025, para crianças de 6 meses até 3 anos completos até 31/03/2026.<br><br>🕗 <strong>Horário de atendimento:</strong> Segunda a sexta-feira, das 8h às 15h<br>📍 <strong>Local:</strong> Secretaria de Educação – av. Moacir Dias de Morais, 1.690, Riachuelo (ao lado da Cozinha Piloto)<br>📞 <strong>Informações:</strong> (16) 3662-6616<br><br>📌 <strong>Documentos necessários (cópias):</strong><br>• Certidão de nascimento da criança<br>• Comprovante de residência atualizado<br>• Comprovante de trabalho (se houver – critério de desempate)<br><br>🗓️ <strong>Resultado das inscrições:</strong> 13 de novembro de 2025<br><br>👶 <strong>Além das creches da rede municipal, participam as creches conveniadas:</strong><br>• Os Samaritanos<br>• Menino Jesus<br>• Cantinho do Futuro<br>• Campinho da Paz<br><br>⚠️ <strong>Atenção:</strong><br>• Responsáveis devem manter os dados de contato atualizados.<br>• Quem já se inscreveu em 2025 e não foi atendido não precisa se inscrever novamente, apenas deve procurar a Secretaria se houve mudança de endereço, telefone ou desejo de troca de unidade.",
+        "description": "A Prefeitura de Batatais, por meio da Secretaria de Educação, informa que as inscrições para vagas em creches da rede municipal e conveniadas estão abertas até 11 de outubro de 2025, para crianças de 6 meses até 3 anos completos até 31/03/2026.\n\n🕗 Horário de atendimento: Segunda a sexta-feira, das 8h às 15h\n📍 Local: Secretaria de Educação – av. Moacir Dias de Morais, 1.690, Riachuelo (ao lado da Cozinha Piloto)\n📞 Informações: (16) 3662-6616\n\n📌 Documentos necessários (cópias):\n• Certidão de nascimento da criança\n• Comprovante de residência atualizado\n• Comprovante de trabalho (se houver – critério de desempate)\n\n🗓️ Resultado das inscrições: 13 de novembro de 2025\n\n👶 Além das creches da rede municipal, participam as creches conveniadas:\n• Os Samaritanos\n• Menino Jesus\n• Cantinho do Futuro\n• Campinho da Paz\n\n⚠️ Atenção:\n• Responsáveis devem manter os dados de contato atualizados.\n• Quem já se inscreveu em 2025 e não foi atendido não precisa se inscrever novamente, apenas deve procurar a Secretaria se houve mudança de endereço, telefone ou desejo de troca de unidade.",
         "readMoreText": "Leia Mais"
     },
     {
@@ -74,7 +99,7 @@
     {
         "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3546_570_370_202508141714000999400.jpg",
-        "altText": "",
+        "altText": "Antonella Pereira Valentini, prefeita mirim eleita, sorrindo para a foto.",
         "date": "2025-08-14",
         "displayDate": "14 de Agosto de 2025",
         "instagramLink": "https://www.instagram.com/prefeituradebatatais/p/DNYRH80N7L9/",
@@ -86,7 +111,7 @@
     {
         "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3545_570_370_202508131704133369090.jpeg",
-        "altText": "",
+        "altText": "Cerimônia de inauguração da reforma e ampliação da EMEB Professora Esther Vianna Bologna.",
         "date": "2025-08-13",
         "displayDate": "13 de Agosto de 2025",
         "instagramLink": "https://www.instagram.com/prefeituradebatatais/p/DNTuPbSvvfi/",

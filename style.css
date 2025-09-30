@@ -1,9 +1,10 @@
 :root {
-    --primary-color: #007bff;
-    --secondary-color: #0056b3;
+    --primary-color: #3498db;
+    --secondary-color: #2980b9; /* Um tom de azul mais escuro para contraste */
     --text-color: #333;
+    --text-color-rgb: 51, 51, 51; /* RGB de #333 para uso em rgba() */
     --light-text-color: #666;
-    --background-color: #f4f4f4;
+    --background-color: #ecf0f1;
     --card-bg-color: #fff;
     --border-color: #ccc;
     --border-radius: 8px;
@@ -14,13 +15,13 @@
 }
 
 html[data-theme="dark"] {
-    --primary-color: #0d6efd;
-    /* Azul um pouco mais vibrante para o modo escuro */
-    --secondary-color: #0a58ca;
+    --primary-color: #85c1e9; /* Azul mais claro para o modo escuro */
+    --secondary-color: #3498db; /* O primary-color do light mode como secondary no dark */
     --text-color: #e0e0e0;
+    --text-color-rgb: 224, 224, 224; /* RGB de #e0e0e0 para uso em rgba() */
     --light-text-color: #a0a0a0;
     --background-color: #121212;
-    --card-bg-color: #1e1e1e;
+    --card-bg-color: rgba(30, 30, 30, 0.7); /* Ligeiramente mais transparente para glassmorphism */
     --border-color: #444;
 }
 
@@ -35,7 +36,7 @@ html[data-theme="dark"] {
 
 body {
     /* Fonte aprimorada para melhor legibilidade em diferentes sistemas */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
     margin: var(--spacing-medium);
     background-color: var(--background-color);
     color: var(--text-color);
@@ -91,7 +92,7 @@ body {
 }
 
 .theme-toggle-button:hover {
-    background-color: rgba(128, 128, 128, 0.2);
+    background-color: rgba(var(--text-color-rgb), 0.1); /* Usa a cor do texto com transparência */
 }
 
 .search-container {
@@ -106,13 +107,13 @@ body {
     font-size: 1em;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 #search-input:focus-visible {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 25%, transparent);
+    border-color: var(--primary-color); /* Mantém a cor primária */
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25); /* Usando rgba para compatibilidade */
 }
 
 h1 {
@@ -120,6 +121,8 @@ h1 {
     color: var(--text-color);
     /* Usando padding para espaçamento interno e margin para externo */
     padding: var(--spacing-medium) 0 var(--spacing-large);
+    font-family: 'Montserrat', sans-serif; /* Aplica a nova fonte para títulos */
+    font-size: 2.5em; /* Aumenta um pouco o tamanho do título principal */
 }
 
 .news-preview-container {
@@ -162,59 +165,36 @@ h1 {
 .news-card {
     background-color: var(--card-bg-color);
     border-radius: var(--border-radius);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Sombra padrão para os cards */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 4px 15px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     text-decoration: none;
     color: inherit;
     display: flex;
     position: relative;
     /* Necessário para o pseudo-elemento do link */
+    border: 1px solid var(--border-color); /* Adiciona uma borda sutil */
     flex-direction: column;
     /* Transição para todos os efeitos, incluindo a animação de filtro */
-    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, max-height 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease, background-color 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, max-height 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
 
     /* Prepara o card para a animação de entrada */
     opacity: 0;
 }
 
 .news-card.visible {
+    /* Start visible */
     animation: fadeInUp 0.5s ease-out forwards;
 }
 
-/* --- Layout do Artigo em Destaque --- */
-.news-card:first-child {
-    grid-column: 1 / -1;
-    /* Faz o primeiro card ocupar toda a largura */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    /* Divide o card em duas colunas: imagem e texto */
-    gap: var(--spacing-medium);
-    align-items: center;
-    /* Alinha verticalmente a imagem e o conteúdo */
+html[data-theme="dark"] .news-card {
+    backdrop-filter: blur(10px); /* Efeito de desfoque para glassmorphism no modo escuro */
 }
-
-.news-card:first-child img {
-    height: 100%;
-    /* A imagem ocupa toda a altura do card, cobrindo o espaço */
-    object-fit: cover;
-    border-radius: var(--border-radius) 0 0 var(--border-radius);
-}
-
-.news-card:first-child .news-content {
-    padding-right: var(--spacing-medium);
-}
-
-.news-card:first-child h3 {
-    font-size: 1.5em;
-    /* Título maior para o destaque */
-}
-
-/* --- Fim do Layout de Destaque --- */
 
 .news-card:hover {
     transform: translateY(-5px);
     /* Sombra mais pronunciada para um efeito de "elevação" */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra mais forte no hover */
 }
 
 /* Melhora a acessibilidade para navegação por teclado */
@@ -227,7 +207,7 @@ h1 {
 
 .news-card img {
     width: 100%;
-    height: 180px;
+    height: 200px;
     object-fit: contain;
     /* 'contain' garante que a imagem inteira seja visível, sem cortes */
     display: block;
@@ -288,6 +268,7 @@ h1 {
 .news-content h3 {
     margin-top: 0;
     margin-bottom: var(--spacing-xsmall);
+    font-family: 'Montserrat', sans-serif;
     font-size: 1.1em;
     line-height: 1.4;
 }
@@ -403,14 +384,14 @@ mark {
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    opacity: 0;
+    opacity: 0.7;
     transform: translateY(20px);
     pointer-events: none;
     transition: opacity 0.3s ease, transform 0.3s ease;
     z-index: 1000;
 }
 
-.back-to-top-button.visible {
+/* Animate the Back to top button */
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
@@ -423,7 +404,7 @@ mark {
     }
 
     .news-card img {
-        height: 160px;
+        height: 180px;
     }
 }
 
@@ -443,7 +424,7 @@ mark {
     }
 
     .news-card img {
-        height: 140px;
+        height: 160px;
     }
 
     .news-content p {
@@ -462,6 +443,6 @@ mark {
     }
 
     .news-card img {
-        height: 180px;
+        height: 200px;
     }
 }

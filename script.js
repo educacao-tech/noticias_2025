@@ -99,8 +99,22 @@ const App = {
                 return;
             }
 
+            // Remove any previously rendered news cards (excluding the no-results-message)
+            const existingNewsCards = this.container.querySelectorAll('.news-card');
+            existingNewsCards.forEach(card => card.remove());
+
+            // Hide the no-results-message if there are news to display
+            if (noResultsEl) {
+                noResultsEl.classList.add('hidden');
+            }
+
             const newsHtml = publishedNews.map(article => this.createArticleHtml(article)).join('');
-            noResultsEl.insertAdjacentHTML('afterend', newsHtml);
+            // Insert the new news cards before the no-results-message, or at the end if no-results-message is not found
+            if (noResultsEl) {
+                noResultsEl.insertAdjacentHTML('beforebegin', newsHtml);
+            } else {
+                this.container.insertAdjacentHTML('beforeend', newsHtml);
+            }
         },
 
         createArticleHtml(article) {
