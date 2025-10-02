@@ -1,8 +1,10 @@
 :root {
     --primary-color: #3498db;
-    --secondary-color: #2980b9; /* Um tom de azul mais escuro para contraste */
+    --secondary-color: #2980b9;
+    /* Um tom de azul mais escuro para contraste */
     --text-color: #333;
-    --text-color-rgb: 51, 51, 51; /* RGB de #333 para uso em rgba() */
+    --text-color-rgb: 51, 51, 51;
+    /* RGB de #333 para uso em rgba() */
     --light-text-color: #666;
     --background-color: #ecf0f1;
     --card-bg-color: #fff;
@@ -15,13 +17,17 @@
 }
 
 html[data-theme="dark"] {
-    --primary-color: #85c1e9; /* Azul mais claro para o modo escuro */
-    --secondary-color: #3498db; /* O primary-color do light mode como secondary no dark */
+    --primary-color: #85c1e9;
+    /* Azul mais claro para o modo escuro */
+    --secondary-color: #3498db;
+    /* O primary-color do light mode como secondary no dark */
     --text-color: #e0e0e0;
-    --text-color-rgb: 224, 224, 224; /* RGB de #e0e0e0 para uso em rgba() */
+    --text-color-rgb: 224, 224, 224;
+    /* RGB de #e0e0e0 para uso em rgba() */
     --light-text-color: #a0a0a0;
     --background-color: #121212;
-    --card-bg-color: rgba(30, 30, 30, 0.7); /* Ligeiramente mais transparente para glassmorphism */
+    --card-bg-color: rgba(30, 30, 30, 0.7);
+    /* Ligeiramente mais transparente para glassmorphism */
     --border-color: #444;
 }
 
@@ -92,7 +98,8 @@ body {
 }
 
 .theme-toggle-button:hover {
-    background-color: rgba(var(--text-color-rgb), 0.1); /* Usa a cor do texto com transparência */
+    background-color: rgba(var(--text-color-rgb), 0.1);
+    /* Usa a cor do texto com transparência */
 }
 
 .search-container {
@@ -112,8 +119,10 @@ body {
 
 #search-input:focus-visible {
     outline: none;
-    border-color: var(--primary-color); /* Mantém a cor primária */
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25); /* Usando rgba para compatibilidade */
+    border-color: var(--primary-color);
+    /* Mantém a cor primária */
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+    /* Usando rgba para compatibilidade */
 }
 
 h1 {
@@ -121,8 +130,10 @@ h1 {
     color: var(--text-color);
     /* Usando padding para espaçamento interno e margin para externo */
     padding: var(--spacing-medium) 0 var(--spacing-large);
-    font-family: 'Montserrat', sans-serif; /* Aplica a nova fonte para títulos */
-    font-size: 2.5em; /* Aumenta um pouco o tamanho do título principal */
+    font-family: 'Montserrat', sans-serif;
+    /* Aplica a nova fonte para títulos */
+    font-size: 2.5em;
+    /* Aumenta um pouco o tamanho do título principal */
 }
 
 .news-preview-container {
@@ -173,7 +184,8 @@ h1 {
     display: flex;
     position: relative;
     /* Necessário para o pseudo-elemento do link */
-    border: 1px solid var(--border-color); /* Adiciona uma borda sutil */
+    border: 1px solid var(--border-color);
+    /* Adiciona uma borda sutil */
     flex-direction: column;
     /* Transição para todos os efeitos, incluindo a animação de filtro */
     transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease, max-height 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
@@ -188,13 +200,15 @@ h1 {
 }
 
 html[data-theme="dark"] .news-card {
-    backdrop-filter: blur(10px); /* Efeito de desfoque para glassmorphism no modo escuro */
+    backdrop-filter: blur(10px);
+    /* Efeito de desfoque para glassmorphism no modo escuro */
 }
 
 .news-card:hover {
     transform: translateY(-5px);
     /* Sombra mais pronunciada para um efeito de "elevação" */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra mais forte no hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    /* Sombra mais forte no hover */
 }
 
 /* Melhora a acessibilidade para navegação por teclado */
@@ -208,9 +222,13 @@ html[data-theme="dark"] .news-card {
 .news-card img {
     width: 100%;
     height: 200px;
+    object-fit: cover;
+    /* 'cover' preenche o espaço, cortando a imagem se necessário para manter a proporção */
     object-fit: contain;
-    /* 'contain' garante que a imagem inteira seja visível, sem cortes */
+    /* 'contain' garante que a imagem inteira seja visível, sem cortes. */
     display: block;
+    /* Adiciona um fundo sutil para preencher o espaço vazio quando a proporção da imagem não corresponde. */
+    background-color: rgba(var(--text-color-rgb), 0.05);
 }
 
 .news-content {
@@ -391,7 +409,8 @@ mark {
     z-index: 1000;
 }
 
-/* Animate the Back to top button */
+/* Torna o botão visível com uma animação suave */
+.back-to-top-button.visible {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;

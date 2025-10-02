@@ -57,7 +57,7 @@ const App = {
 
             const isDark = theme === 'dark';
             this.themeIcon.innerHTML = isDark ? this.icons.sun : this.icons.moon;
-            
+
             // Anuncia a mudança para leitores de tela
             const statusMessage = `Tema alterado para ${isDark ? 'escuro' : 'claro'}.`;
             this.themeStatus.textContent = statusMessage;
@@ -70,18 +70,24 @@ const App = {
     news: {
         async init() {
             this.container = document.querySelector('.news-preview-container');
+            this.spinner = this.container.querySelector('.spinner');
+            this.noResultsEl = this.container.querySelector('.no-results-message');
             if (!this.container) return;
 
             try {
                 const response = await fetch('news.json');
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`Erro HTTP! Status: ${response.status}`);
                 }
                 const newsData = await response.json();
                 this.render(newsData);
             } catch (error) {
                 console.error("Falha ao carregar as notícias:", error);
-                this.container.innerHTML = '<p class="no-results-message">Não foi possível carregar as notícias. Tente novamente mais tarde.</p>';
+                this.noResultsEl.textContent = 'Não foi possível carregar as notícias. Tente novamente mais tarde.';
+                this.noResultsEl.classList.remove('hidden');
+            } finally {
+                // Esconde o spinner independentemente do resultado (sucesso ou erro)
+                this.spinner.classList.add('hidden');
             }
         },
 
@@ -91,11 +97,9 @@ const App = {
                 .filter(article => article.published)
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            const noResultsEl = this.container.querySelector('.no-results-message');
-
             if (publishedNews.length === 0) {
-                noResultsEl.textContent = 'Nenhuma notícia publicada no momento.';
-                noResultsEl.classList.remove('hidden');
+                this.noResultsEl.textContent = 'Nenhuma notícia publicada no momento.';
+                this.noResultsEl.classList.remove('hidden');
                 return;
             }
 
@@ -103,15 +107,12 @@ const App = {
             const existingNewsCards = this.container.querySelectorAll('.news-card');
             existingNewsCards.forEach(card => card.remove());
 
-            // Hide the no-results-message if there are news to display
-            if (noResultsEl) {
-                noResultsEl.classList.add('hidden');
-            }
+            this.noResultsEl.classList.add('hidden');
 
             const newsHtml = publishedNews.map(article => this.createArticleHtml(article)).join('');
             // Insert the new news cards before the no-results-message, or at the end if no-results-message is not found
-            if (noResultsEl) {
-                noResultsEl.insertAdjacentHTML('beforebegin', newsHtml);
+            if (this.noResultsEl) {
+                this.noResultsEl.insertAdjacentHTML('beforebegin', newsHtml);
             } else {
                 this.container.insertAdjacentHTML('beforeend', newsHtml);
             }
