@@ -222,8 +222,6 @@ html[data-theme="dark"] .news-card {
 .news-card img {
     width: 100%;
     height: 200px;
-    object-fit: cover;
-    /* 'cover' preenche o espaço, cortando a imagem se necessário para manter a proporção */
     object-fit: contain;
     /* 'contain' garante que a imagem inteira seja visível, sem cortes. */
     display: block;
