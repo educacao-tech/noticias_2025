@@ -1,15 +1,15 @@
 [
    {
-        "published": false,
-        "imageUrl": "",
-        "altText": "",
-        "date": "2025-09-30",
-        "displayDate": "30 de Setembro de 2025",
-        "instagramLink": "",
-        "link": "",
-        "title": "",
-        "description": "",
-        "readMoreText": "Assista Agora"
+        "published": true,
+        "imageUrl": "https://raw.githubusercontent.com/educacao-tech/imagem_noticia/cbd2b5a2f8dbe00860af794b266d3e445b1ed5a9/eptv-na-escola/eptv%20na%20escola.jpg",
+        "altText": "EMEB Esther Vianna Bologna é finalista do EPTV na Escola 2025 com projeto sustentável e criativo",
+        "date": "2025-10-01",
+        "displayDate": "01 de Outubro de 2025",
+        "instagramLink": "https://www.instagram.com/p/DPRvVPgkfi1/?img_index=1",
+        "link": "https://www.batatais.sp.gov.br/noticias/emeb-esther-vianna-bologna-e-finalista-do-eptv-na-escola-2025-com-projeto-sustentavel-e-criativo",
+        "title": "EMEB Esther Vianna Bologna é finalista do EPTV na Escola 2025 com projeto sustentável e criativo",
+        "description": "Batatais celebra mais uma conquista educacional: a EMEB Profª Esther Vianna Bologna está entre as dez finalistas do projeto EPTV na Escola 2025, reafirmando seu protagonismo na formação cidadã e ambiental de seus alunos.",
+        "readMoreText": "Leia Mais"
     },
     {
         "published": true,
