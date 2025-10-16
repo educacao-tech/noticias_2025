@@ -1,4 +1,28 @@
 [
+    {
+        "published": true,
+        "imageUrl": "https://raw.githubusercontent.com/educacao-tech/imagem_noticia/main/reta_final_elefante.jpg",
+        "altText": "Banner da Reta Final da competição de leitura Elefante Letrado.",
+        "date": "2025-10-15",
+        "displayDate": "15 de Outubro de 2025",
+        "instagramLink": "https://www.instagram.com/p/DP16-pZEcTR/?img_index=1",
+        "link": "https://www.batatais.sp.gov.br/noticias/reta-final-para-participacao-no-concurso-de-leitura-%E2%80%93-elefante-letrado",
+        "title": "Competição de Leitura 'Elefante Letrado' Entra na Reta Final",
+        "description": "Alunos da rede municipal intensificam a leitura na fase final da competição 'Elefante Letrado'. O projeto incentiva o hábito de ler e melhora a compreensão de texto de forma lúdica e interativa.",
+        "readMoreText": "Leia Mais"
+    },
+    {
+        "published": true,
+        "imageUrl": "https://raw.githubusercontent.com/educacao-tech/imagem_noticia/main/agricultura_familiar.jpeg",
+        "altText": "Produtos da agricultura familiar, como vegetais e frutas, expostos em uma cesta.",
+        "date": "2025-10-05",
+        "displayDate": "05 de Outubro de 2025",
+        "instagramLink": "https://www.instagram.com/p/DPy5SDCDb1M/?img_index=1",
+        "link": "https://www.batatais.sp.gov.br/noticias/alunos-da-rede-municipal-de-ensino-conhecem-de-perto-a-producao-de-alimentos-da-merenda-escolar",
+        "title": "Projeto de Agricultura Familiar Enriquece Merenda Escolar na Rede Municipal",
+        "description": "Alunos dos 3º anos do período da manhã das Escolas Municipais Padre Benito, Anna Bonagura, Braga Morato e Célia Bueno participaram de uma atividade especial: a visita aos produtores do Assentamento Nossa Terra, responsáveis pelo fornecimento de hortaliças e legumes que compõem o cardápio da alimentação escolar da rede municipal de ensino.",
+        "readMoreText": "Leia Mais"
+   },
    {
         "published": true,
         "imageUrl": "https://raw.githubusercontent.com/educacao-tech/imagem_noticia/cbd2b5a2f8dbe00860af794b266d3e445b1ed5a9/eptv-na-escola/eptv%20na%20escola.jpg",
