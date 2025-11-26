@@ -1,6 +1,19 @@
 [
     {
         "published": true,
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3670_570_370_202511251545055318320.jpg",
+        "altText": "Secretaria de Educação de Batatais convida para a cerimônia de premiação do Concurso de Leitura ‘Elefante Letrado’",
+        "date": "2025-11-25",
+        "displayDate": "25 de Novembro de 2025",
+        "instagramLink": "https://www.instagram.com/p/DRfc7A-EVv_/",
+        "link": "https://www.batatais.sp.gov.br/noticias/secretaria-de-educacao-de-batatais-convida-para-a-cerimonia-de-premiacao-do-concurso-de-leitura-%E2%80%98elefante-letrado%E2%80%99",
+        "title": "Secretaria de Educação de Batatais convida para a cerimônia de premiação do Concurso de Leitura ‘Elefante Letrado’",
+        "description": "A Prefeitura de Batatais, por meio da Secretaria Municipal de Educação, convida alunos, familiares, professores e toda a comunidade para a cerimônia de premiação do Concurso de Leitura “Elefante Letrado”. O evento celebra o talento e a dedicação dos estudantes da rede municipal do 1º ao 5º ano que se destacaram na iniciativa, que incentiva o hábito da leitura e a imaginação.",
+        "readMoreText": "Leia Mais"
+    },
+    
+    {
+        "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3662_570_370_202511171701473086660.jpg",
         "altText": "Secretaria de Educação realiza Festival da Educação Infantil com o tema Brinquedos e Brincadeiras",
         "date": "2025-11-17",
