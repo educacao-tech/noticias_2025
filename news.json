@@ -1,6 +1,19 @@
 [
     {
         "published": true,
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3678_570_370_202512011715590632000.jpg",
+        "altText": "Secretaria de Educação de Batatais realiza a 3ª Edição da Feira de Tecnologia e Inovação",
+        "date": "2025-12-01",
+        "displayDate": "01 de Dezembro de 2025",
+        "instagramLink": "https://www.instagram.com/p/DRvoj9YjbSz/",
+        "link": "https://www.batatais.sp.gov.br/noticias/secretaria-de-educacao-de-batatais-realiza-a-3%C2%AA-edicao-da-feira-de-tecnologia-e-inovacao",
+        "title": "Secretaria de Educação de Batatais realiza a 3ª Edição da Feira de Tecnologia e Inovação",
+        "description": "A Prefeitura de Batatais, por meio da Secretaria Municipal de Educação, promove, nos dias 2, 3 e 4 de dezembro, a 3ª Edição da Feira de Tecnologia e Inovação. O evento, que será realizado no Salão da ProArte, das 8h às 11h e das 13h às 14h, apresentará projetos desenvolvidos ao longo do ano pelos estudantes na disciplina de Tecnologia e Inovação.",
+        "readMoreText": "Leia Mais"
+    },
+
+    {
+        "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3670_570_370_202511251545055318320.jpg",
         "altText": "Secretaria de Educação de Batatais convida para a cerimônia de premiação do Concurso de Leitura ‘Elefante Letrado’",
         "date": "2025-11-25",
