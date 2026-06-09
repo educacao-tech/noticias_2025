@@ -7,31 +7,107 @@ const fs = require('fs').promises;
 const path = require('path');
 const { constants } = require('fs');
 const crypto = require('crypto');
+const { exec } = require('child_process');
 
 const app = express();
 const PORT = 3001; // Porta padrão alterada para 3001
 const SECRET_KEY = process.env.JWT_SECRET || 'chave_temporaria_desenvolvimento'; // Em produção, defina JWT_SECRET no ambiente
+const USERS_FILE = path.join(__dirname, 'users.json');
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// Simulação de banco de dados de usuários
-const users = [
-    // O hash abaixo corresponde à senha '123'. Substitua pelo hash da sua nova senha.
-    { id: 1, username: 'admin', password: '$2b$10$76YmP1q45i/7j3Y6oZ3iA.uB3A7o7.qXzS5yR5U6l6OqIqW0yW5yq' }
-];
+// Helper to initialize news data (migration logic moved here)
+async function initNewsFile() {
+    const filePath = path.join(__dirname, 'news.json');
+    try {
+        await fs.access(filePath, constants.F_OK);
+        const data = await fs.readFile(filePath, 'utf8');
+        if (!data || data.trim() === "") return;
+
+        let json = JSON.parse(data);
+        let changed = false;
+        
+        const migratedJson = json.map(item => {
+            if (!item.id) {
+                item.id = crypto.randomUUID();
+                changed = true;
+            }
+            return item;
+        });
+
+        if (changed) {
+            await fs.writeFile(filePath, JSON.stringify(migratedJson, null, 4), 'utf8');
+            console.log('📦 News database migrated: Missing IDs added.');
+        }
+    } catch (err) {
+        // If file doesn't exist, we don't need to migrate
+        if (err.code !== 'ENOENT') console.error('Error during migration:', err);
+    }
+}
+
+// Validador de URL para segurança no servidor
+function isValidURL(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+// Helper para ler usuários do arquivo
+async function getUsers() {
+    try {
+        const data = await fs.readFile(USERS_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        return [];
+    }
+}
 
 // Rota de Login para gerar o Token
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
+    const users = await getUsers();
     const user = users.find(u => u.username === username);
 
-    if (user && await bcrypt.compare(password, user.password)) {
-        const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
-        return res.json({ token });
+    if (user) {
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+            const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
+            return res.json({ token });
+        }
+        console.warn(`[Login] Senha incorreta para o usuário: "${username}"`);
+    } else {
+        console.warn(`[Login] Usuário não encontrado no users.json: "${username}"`);
     }
 
     res.status(401).json({ message: 'Credenciais inválidas' });
+});
+
+// Rota para alterar a senha do usuário logado
+app.post('/api/change-password', authenticateToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ message: 'A nova senha deve ter pelo menos 6 caracteres.' });
+    }
+
+    const users = await getUsers();
+    // Encontra o usuário no "banco de dados" pelo ID vindo do Token
+    const user = users.find(u => u.id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+    // Verifica se a senha atual está correta
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'Senha atual incorreta' });
+
+    // Gera o novo hash e atualiza o objeto
+    user.password = await bcrypt.hash(newPassword, 10);
+    
+    await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 4));
+    res.json({ message: 'Senha alterada com sucesso!' });
 });
 
 // Middleware para verificar o Token JWT
@@ -50,41 +126,22 @@ function authenticateToken(req, res, next) {
 
 // Rota de notícias (Protegida)
 app.get('/api/news', async (req, res) => {
-    console.log(`[${new Date().toLocaleTimeString()}] 📥 Requisição GET /api/news`);
     try {
         const filePath = path.join(__dirname, 'news.json');
         
-        // Verifica se o arquivo existe antes de tentar ler
         try {
-            await fs.access(filePath, constants.F_OK);
-        } catch {
-            console.log('⚠️ Arquivo news.json não encontrado. Retornando lista vazia.');
-            return res.json([]);
-        }
-
-        const data = await fs.readFile(filePath, 'utf8');
-
-        if (!data || data.trim() === "") {
-            return res.json([]);
-        }
-
-        try {
-            let json = JSON.parse(data);
-            // Migração automática: Adiciona ID se não existir em itens antigos
-            let changed = false;
-            json = json.map(item => {
-                if (!item.id) { item.id = crypto.randomUUID(); changed = true; }
-                return item;
-            });
-            if (changed) await fs.writeFile(filePath, JSON.stringify(json, null, 4), 'utf8');
+            const data = await fs.readFile(filePath, 'utf8');
+            if (!data || data.trim() === "") return res.json([]);
+            
+            const json = JSON.parse(data);
             res.json(json);
         } catch (parseErr) {
-            console.error("❌ Erro de sintaxe no news.json:", parseErr.message);
-            res.status(500).json({ message: 'O arquivo de dados (news.json) está corrompido.' });
+            if (parseErr.code === 'ENOENT') return res.json([]);
+            throw parseErr;
         }
     } catch (err) {
         console.error("❌ Erro ao ler news.json:", err);
-        res.status(500).json({ message: 'Erro ao carregar notícias do disco' });
+        res.status(500).json({ message: 'Erro ao carregar notícias' });
     }
 });
 
@@ -98,6 +155,11 @@ app.post('/api/news', authenticateToken, async (req, res) => {
 
         if (missingFields.length > 0) {
             return res.status(400).json({ message: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
+        }
+
+        // Validação de URLs obrigatórias
+        if (!isValidURL(newArticle.link) || !isValidURL(newArticle.imageUrl)) {
+            return res.status(400).json({ message: 'As URLs de link ou imagem são inválidas.' });
         }
 
         const filePath = path.join(__dirname, 'news.json');
@@ -137,6 +199,11 @@ app.put('/api/news', authenticateToken, async (req, res) => {
         
         const fileData = await fs.readFile(filePath, 'utf8');
         let news = JSON.parse(fileData || "[]");
+
+        // Validação de URLs na atualização
+        if (!isValidURL(updatedArticle.link) || !isValidURL(updatedArticle.imageUrl)) {
+            return res.status(400).json({ message: 'As URLs fornecidas para atualização são inválidas.' });
+        }
 
         // Encontra o índice da notícia pelo ID único
         const index = news.findIndex(n => n.id === updatedArticle.id);
@@ -185,9 +252,30 @@ app.delete('/api/news', authenticateToken, async (req, res) => {
     }
 });
 
+// Atalho para facilitar o acesso: http://localhost:3001/admin
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // Serve os arquivos estáticos da pasta atual
 app.use(express.static(path.join(__dirname, '.')));
 
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`); // Log atualizado para mostrar a porta correta
+app.listen(PORT, async () => {
+    // Run migration once on startup
+    await initNewsFile();
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+
+    // Abre o navegador automaticamente apenas na primeira vez (evita novas abas no restart do nodemon)
+    if (process.env.OPEN_BROWSER_ON_START === 'true') {
+        const lockPath = path.join(__dirname, '.browser_lock');
+        try {
+            await fs.access(lockPath, constants.F_OK);
+        } catch (err) {
+            // Se o arquivo não existe, abre o navegador e cria a trava
+            const url = `http://localhost:${PORT}`;
+            const start = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+            exec(`${start} ${url}`);
+            await fs.writeFile(lockPath, 'opened');
+        }
+    }
 });

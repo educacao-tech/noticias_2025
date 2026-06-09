@@ -15,11 +15,18 @@
         .admin-list { margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px; }
         .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); }
         .btn-delete { background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
-        .btn-edit { background: #f39c12; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-right: 5px; }        
+        .btn-edit { background: #f39c12; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-right: 5px; }
         #login-section { text-align: center; }
         #image-preview { max-width: 100%; height: auto; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 4px; display: none; }
         #image-preview.visible { display: block; }
         .hidden { display: none !important; } /* Garante que a classe hidden sempre funcione */
+        .password-input-wrapper { position: relative; }
+        .password-input-wrapper input { padding-right: 40px; } /* Espaço para o ícone */
+        .toggle-password-visibility { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--light-text-color); }
+        .toggle-password-visibility:hover { color: var(--primary-color); }
+        .strength-meter { height: 4px; width: 100%; background-color: var(--border-color); margin-top: 5px; border-radius: 2px; overflow: hidden; }
+        #strength-bar { height: 100%; width: 0; transition: width 0.3s ease, background-color 0.3s ease; }
+        #strength-text { font-size: 0.75em; margin-top: 2px; display: block; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -28,21 +35,64 @@
         <div id="login-section">
             <h2>Login Administrativo</h2>
             <div class="form-group">
-                <input type="text" id="username" placeholder="Usuário">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" placeholder="admin" required>
             </div>
             <div class="form-group">
-                <input type="password" id="password" placeholder="Senha">
+                <label for="password">Senha</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="password" placeholder="123" required>
+                    <span class="toggle-password-visibility" data-target="password" title="Mostrar/Esconder senha">👁️</span>
+                </div>
             </div>
-            <button class="btn-save" onclick="Admin.login()">Entrar</button>
+            <button class="btn-save" onclick="Admin.login()">Entrar</button> <br><br>
+            <small>Usuário: admin, Senha: 123 (para testes)</small>
         </div>
 
         <!-- Seção de Gerenciamento (Escondida inicialmente) -->
         <div id="admin-content" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2>Gerenciar Notícias</h2>
-                <button onclick="Admin.logout()" style="background:none; border:none; color:var(--primary-color); cursor:pointer;">Sair</button>
+                <div>
+                    <button onclick="Admin.togglePasswordSection(true)" style="background:none; border:none; color:var(--primary-color); cursor:pointer; margin-right: 15px;">Alterar Senha</button>
+                    <button onclick="Admin.logout()" style="background:none; border:none; color:var(--primary-color); cursor:pointer;">Sair</button>
+                </div>
             </div>
             
+            <!-- Seção de Alterar Senha (Escondida por padrão) -->
+            <div id="password-section" class="hidden" style="margin-bottom: 30px; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px;">
+                <h3>Alterar Minha Senha</h3>
+                <form id="password-form" onsubmit="Admin.changePassword(event)">
+                    <div class="form-group">
+                        <label for="current-password">Senha Atual</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="current-password" required>
+                            <span class="toggle-password-visibility" data-target="current-password" title="Mostrar/Esconder senha">👁️</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">Nova Senha</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="new-password" required minlength="6">
+                            <span class="toggle-password-visibility" data-target="new-password" title="Mostrar/Esconder senha">👁️</span>
+                        </div>
+                        <div class="strength-meter">
+                            <div id="strength-bar"></div>
+                        </div>
+                        <small id="strength-text"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirmar Nova Senha</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="confirm-password" required minlength="6">
+                            <span class="toggle-password-visibility" data-target="confirm-password" title="Mostrar/Esconder senha">👁️</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-save">Salvar Nova Senha</button>
+                    <button type="button" onclick="Admin.togglePasswordSection(false)" style="background:none; border:none; color:gray; cursor:pointer; margin-left:10px;">Cancelar</button>
+                </form>
+            </div>
+
             <form id="news-form" onsubmit="Admin.handleSubmit(event)">
                 <input type="hidden" id="edit-mode" value="false">
                 <input type="hidden" id="news-id" value="">
@@ -86,9 +136,21 @@
                 <button type="submit" class="btn-save" id="btn-submit">Adicionar Notícia</button>
             </form>
 
-            <div class="admin-list" id="admin-list">
-                <h3>Notícias Atuais</h3>
-                <!-- Lista preenchida via JS -->
+            <div class="admin-list">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3>Notícias Atuais</h3>
+                    <div>
+                        <button class="btn-save" style="background-color: #3498db; margin-right: 5px;" onclick="Admin.triggerCSVImport()">Importar de CSV</button>
+                        <button class="btn-save" onclick="Admin.exportNewsToCSV()">Exportar para CSV</button>
+                    </div>
+                </div>
+                <input type="file" id="csv-import-input" accept=".csv" class="hidden">
+                <div class="form-group" style="margin-top: 10px;">
+                    <input type="search" id="admin-search-input" placeholder="Filtrar por título ou descrição...">
+                </div>
+                <div id="admin-news-items">
+                    <!-- Lista preenchida via JS -->
+                </div>
             </div>
         </div>
     </div>

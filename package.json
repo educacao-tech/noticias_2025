@@ -4,9 +4,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js --ignore news.json --ext js,json,html,css"
+    "predev": "npx kill-port 3001 && npx kill-port 5500",
+    "dev": "cross-env OPEN_BROWSER_ON_START=true nodemon server.js --ignore news.json --ignore .browser_lock --ext js,json,html,css"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "nodemon": "^3.0.0"
   },
   "dependencies": {
