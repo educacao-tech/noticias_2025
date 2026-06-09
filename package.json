@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "predev": "npx kill-port 3001 && npx kill-port 5500",
+    "predev": "node -e \"try { require('fs').unlinkSync('.browser_lock') } catch (e) {}\" & npx kill-port 3001 & npx kill-port 5500",
     "dev": "cross-env OPEN_BROWSER_ON_START=true nodemon server.js --ignore news.json --ignore .browser_lock --ext js,json,html,css"
   },
   "devDependencies": {

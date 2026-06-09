@@ -374,7 +374,7 @@ mark {
 /* Classe genérica para esconder elementos (como a mensagem de 'nenhum resultado').
    Deve vir DEPOIS das regras de animação para garantir a ordem correta de cascata. */
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .no-results-message {
@@ -463,6 +463,8 @@ mark {
 
     .news-card img {
         height: 200px;
+    }
+}
 
 /* Animação de erro (Shake) */
 @keyframes shake {
@@ -475,5 +477,491 @@ mark {
     animation: shake 0.4s ease-in-out;
     border: 1px solid #e74c3c !important;
 }
+
+/* Admin Panel Specific Styles */
+.admin-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0 !important; /* Remove a margem padrão do body para o admin */
+    padding: var(--spacing-medium);
+}
+
+.admin-container {
+    width: 100%;
+    max-width: 1000px; /* Aumentado para melhor uso do espaço em telas grandes */
+    margin: auto; /* 'auto' em um container flex centraliza vertical e horizontalmente */
+    padding: var(--spacing-large);
+    background: var(--card-bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Sombra mais suave para destaque */
+}
+
+.admin-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.admin-header h2 {
+    text-align: left;
+    margin-bottom: 0;
+}
+
+/* Animação suave para o conteúdo administrativo quando aparece */
+#admin-content {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.admin-header button {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    margin-left: 15px;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+.admin-header button:hover {
+    color: var(--secondary-color);
+}
+
+#password-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+#password-section .btn-cancel {
+    background: none;
+    border: none;
+    color: gray;
+    cursor: pointer;
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+#password-section .btn-cancel:hover {
+    color: var(--text-color);
+}
+
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: bold; }
+input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--background-color); color: var(--text-color); }
+.btn-save { background-color: #27ae60; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+.btn-delete { background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+.btn-edit { background: #f39c12; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-right: 5px; }
+
+#login-section {
+    text-align: center;
+    animation: fadeInUp 0.8s ease-out;
+    /* Efeito Glassmorphism */
+    background-color: rgba(255, 255, 255, 0.1); /* Fundo levemente transparente */
+    backdrop-filter: blur(10px); /* Efeito de desfoque */
+    border: 1px solid rgba(255, 255, 255, 0.18); /* Borda sutil e transparente */
+    border-radius: var(--border-radius); /* Usa o raio de borda definido */
+    padding: var(--spacing-large); /* Adiciona padding interno */
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1); /* Sombra para profundidade */
+}
+
+html[data-theme="dark"] #login-section {
+    background-color: rgba(30, 30, 30, 0.2); /* Fundo mais escuro no modo escuro */
+    border: 1px solid rgba(255, 255, 255, 0.05); /* Borda ainda mais sutil no modo escuro */
+}
+
+#image-preview { max-width: 100%; height: auto; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 4px; display: none; }
+#image-preview.visible { display: block; }
+.password-input-wrapper { position: relative; }
+.password-input-wrapper input { padding-right: 40px; } /* Espaço para o ícone */
+.toggle-password-visibility { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--light-text-color); }
+.toggle-password-visibility:hover { color: var(--primary-color); }
+.strength-meter { height: 5px; width: 100%; background-color: var(--border-color); margin-top: 5px; border-radius: 2px; overflow: hidden; }
+#strength-bar { height: 100%; width: 0; transition: width 0.3s ease, background-color 0.3s ease; }
+#strength-text { font-size: 0.75em; margin-top: 2px; display: block; font-weight: bold; }
+
+.admin-list {
+    margin-top: 40px;
+    border-top: 2px solid var(--border-color);
+    padding-top: 20px;
+}
+
+.admin-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px; /* Adiciona espaçamento entre os botões */
+    margin-bottom: 10px;
+}
+
+.admin-list-header .btn-secondary {
+    background-color: #3498db;
+}
+
+.admin-list .form-group { /* Specificity for search input form-group */
+    margin-top: 10px;
+}
+
+#admin-news-items {
+    margin-top: 20px;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background-color: var(--card-bg-color);
+    color: var(--text-color);
+    padding: 15px 20px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: slideIn 0.3s forwards, fadeOut 3s forwards 2s; /* Slide in, stay 2s, fade out */
+    min-width: 250px;
+    max-width: 350px;
+    border: 1px solid var(--border-color);
+}
+
+.toast.success {
+    border-left: 5px solid #2ecc71;
+}
+
+.toast.error {
+    border-left: 5px solid #e74c3c;
+}
+
+.toast.info {
+    border-left: 5px solid #3498db;
+}
+
+.toast-icon {
+    font-size: 1.2em;
+}
+
+.toast-message {
+    flex-grow: 1;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Admin List Improvements */
+.admin-list-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg-color);
+    margin-bottom: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.admin-list-item:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.admin-list-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 15px;
+    flex-shrink: 0; /* Prevent image from shrinking */
+}
+
+.admin-item-details {
+    flex-grow: 1;
+}
+
+.admin-item-details h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.1em;
+    color: var(--primary-color);
+}
+
+.admin-item-details p {
+    margin: 0;
+    font-size: 0.9em;
+    color: var(--light-text-color);
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Show only 2 lines of description */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-item-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+.admin-item-actions .btn-edit,
+.admin-item-actions .btn-delete {
+    padding: 8px 12px;
+    font-size: 0.9em;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+/* Confirmation Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--card-bg-color);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    /* Garante que o texto dentro do modal, como labels de formulário, não seja centralizado */
+    text-align: left;
+    /* Adiciona um padding padrão que pode ser ajustado em media queries */
+    padding: var(--spacing-large);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+/* Modal maior para o formulário de notícias */
+.modal-content.large {
+    max-width: 800px;
+    width: 95%;
+    padding: var(--spacing-large); /* Garante padding consistente para o modal grande */
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-overlay.visible .modal-content {
+    transform: translateY(0);
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: var(--text-color);
+    font-size: 1.4em;
+    margin-bottom: 15px;
+}
+
+.modal-content p {
+    color: var(--light-text-color);
+    margin-bottom: 25px;
+    font-size: 1em;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-buttons .btn-confirm,
+.modal-buttons .btn-cancel {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.modal-buttons .btn-confirm {
+    background-color: #e74c3c; /* Red for delete */
+    color: white;
+}
+
+.modal-buttons .btn-confirm:hover {
+    background-color: #c0392b;
+}
+
+.modal-buttons .btn-cancel {
+    background-color: #ccc;
+    color: var(--text-color);
+}
+
+.modal-buttons .btn-cancel:hover {
+    background-color: #bbb;
+}
+
+/* Loading Spinner Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10002; /* Acima de tudo, incluindo modais */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.loading-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.spinner {
+    border: 6px solid rgba(0, 0, 0, 0.1); /* Borda clara para fundos brancos */
+    border-top: 6px solid var(--primary-color); /* Cor do spinner */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+/* Garante que o spinner no overlay escuro continue com bordas claras */
+.loading-overlay .spinner {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Container para centralizar o spinner dentro de listas */
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    width: 100%;
+}
+
+/* Estilos para o botão de submit quando desabilitado */
+.btn-save:disabled,
+.btn-save[disabled] {
+    background-color: #cccccc; /* Cor cinza */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-edit:disabled,
+.btn-edit[disabled],
+.btn-delete:disabled,
+.btn-delete[disabled] {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Media Queries para responsividade do modal */
+@media (max-width: 768px) {
+    .modal-content.large {
+        max-width: 90%; /* Aumenta a largura para ocupar mais espaço em tablets */
     }
+}
+
+@media (max-width: 600px) {
+    .modal-content {
+        padding: var(--spacing-medium); /* Reduz o padding em telas menores */
+    }
+
+    .modal-content.large {
+        padding: var(--spacing-medium); /* Reduz o padding do modal grande */
+    }
+
+    .modal-buttons {
+        flex-direction: column; /* Empilha os botões verticalmente */
+        gap: var(--spacing-xsmall); /* Reduz o espaçamento entre os botões */
+    }
+
+    .modal-buttons .btn-confirm,
+    .modal-buttons .btn-cancel {
+        width: 100%; /* Faz os botões ocuparem a largura total */
+    }
+
+    /* Garante que o título do modal permaneça centralizado se for o caso, mas o conteúdo do formulário não */
+    .modal-content h3 { text-align: center; }
+}
+
+/* Estilos de Paginação */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding-bottom: 20px;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--light-text-color);
 }

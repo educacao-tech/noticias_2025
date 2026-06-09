@@ -271,10 +271,15 @@ app.listen(PORT, async () => {
         try {
             await fs.access(lockPath, constants.F_OK);
         } catch (err) {
-            // Se o arquivo não existe, abre o navegador e cria a trava
+            console.log('🚀 Abrindo o navegador...');
             const url = `http://localhost:${PORT}`;
-            const start = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
-            exec(`${start} ${url}`);
+            // No Windows, usamos 'cmd /c start' para maior compatibilidade
+            const start = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd /c start' : 'xdg-open';
+            exec(`${start} ${url}`, (error) => {
+                if (error) {
+                    console.error(`❌ Erro ao tentar abrir o navegador: ${error}`);
+                }
+            });
             await fs.writeFile(lockPath, 'opened');
         }
     }

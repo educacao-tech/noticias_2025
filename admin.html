@@ -6,30 +6,8 @@
     <title>Painel Administrativo - Notícias</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <style>
-        .admin-container { max-width: 800px; margin: 40px auto; padding: 20px; background: var(--card-bg-color); border-radius: var(--border-radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--background-color); color: var(--text-color); }
-        .btn-save { background-color: #27ae60; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        .admin-list { margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px; }
-        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); }
-        .btn-delete { background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
-        .btn-edit { background: #f39c12; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-right: 5px; }
-        #login-section { text-align: center; }
-        #image-preview { max-width: 100%; height: auto; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 4px; display: none; }
-        #image-preview.visible { display: block; }
-        .hidden { display: none !important; } /* Garante que a classe hidden sempre funcione */
-        .password-input-wrapper { position: relative; }
-        .password-input-wrapper input { padding-right: 40px; } /* Espaço para o ícone */
-        .toggle-password-visibility { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--light-text-color); }
-        .toggle-password-visibility:hover { color: var(--primary-color); }
-        .strength-meter { height: 4px; width: 100%; background-color: var(--border-color); margin-top: 5px; border-radius: 2px; overflow: hidden; }
-        #strength-bar { height: 100%; width: 0; transition: width 0.3s ease, background-color 0.3s ease; }
-        #strength-text { font-size: 0.75em; margin-top: 2px; display: block; font-weight: bold; }
-    </style>
 </head>
-<body>
+<body class="admin-body">
     <div class="admin-container">
         <!-- Seção de Login -->
         <div id="login-section">
@@ -51,16 +29,16 @@
 
         <!-- Seção de Gerenciamento (Escondida inicialmente) -->
         <div id="admin-content" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <header class="admin-header">
                 <h2>Gerenciar Notícias</h2>
                 <div>
-                    <button onclick="Admin.togglePasswordSection(true)" style="background:none; border:none; color:var(--primary-color); cursor:pointer; margin-right: 15px;">Alterar Senha</button>
-                    <button onclick="Admin.logout()" style="background:none; border:none; color:var(--primary-color); cursor:pointer;">Sair</button>
+                    <button onclick="Admin.togglePasswordSection(true)">Alterar Senha</button>
+                    <button onclick="Admin.logout()">Sair</button>
                 </div>
-            </div>
+            </header>
             
             <!-- Seção de Alterar Senha (Escondida por padrão) -->
-            <div id="password-section" class="hidden" style="margin-bottom: 30px; padding: 15px; border: 1px solid var(--border-color); border-radius: 4px;">
+            <div id="password-section" class="hidden">
                 <h3>Alterar Minha Senha</h3>
                 <form id="password-form" onsubmit="Admin.changePassword(event)">
                     <div class="form-group">
@@ -89,71 +67,103 @@
                         </div>
                     </div>
                     <button type="submit" class="btn-save">Salvar Nova Senha</button>
-                    <button type="button" onclick="Admin.togglePasswordSection(false)" style="background:none; border:none; color:gray; cursor:pointer; margin-left:10px;">Cancelar</button>
+                    <button type="button" onclick="Admin.togglePasswordSection(false)" class="btn-cancel">Cancelar</button>
                 </form>
             </div>
 
-            <form id="news-form" onsubmit="Admin.handleSubmit(event)">
-                <input type="hidden" id="edit-mode" value="false">
-                <input type="hidden" id="news-id" value="">
-                <div class="form-group">
-                    <label>Título</label>
-                    <input type="text" id="title" required>
+            <!-- Modal de Cadastro/Edição de Notícias -->
+            <div id="news-modal" class="modal-overlay">
+                <div class="modal-content large">
+                    <h3 id="modal-title">Adicionar Notícia</h3>
+                    <form id="news-form" onsubmit="Admin.handleSubmit(event)">
+                        <input type="hidden" id="edit-mode" value="false">
+                        <input type="hidden" id="news-id" value="">
+                        <div class="form-group">
+                            <label for="title">Título</label>
+                            <input type="text" id="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="link">Link da Notícia (Identificador Único)</label>
+                            <input type="url" id="link" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="imageUrl">URL da Imagem</label>
+                            <input type="url" id="imageUrl" required>
+                            <img id="image-preview" src="" alt="Prévia da Imagem">
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Data (AAAA-MM-DD)</label>
+                            <input type="date" id="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="displayDate">Data Exibição (Ex: 09 de Junho de 2026)</label>
+                            <input type="text" id="displayDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Descrição</label>
+                            <textarea id="description" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="readMoreText">Texto do Botão (Ex: Leia Mais)</label>
+                            <input type="text" id="readMoreText" value="Leia Mais">
+                        </div>
+                        <div class="form-group">
+                            <label for="instagramLink">Link Instagram (Opcional)</label>
+                            <input type="url" id="instagramLink">
+                        </div>
+                        <div class="form-group">
+                            <label for="altText">Texto Alternativo (Acessibilidade)</label>
+                            <input type="text" id="altText">
+                        </div>
+                        <div class="modal-buttons">
+                            <button type="button" class="btn-cancel" onclick="Admin.closeNewsModal()">Cancelar</button>
+                            <button type="submit" class="btn-save" id="btn-submit">Salvar Notícia</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label>Link da Notícia (Identificador Único)</label>
-                    <input type="url" id="link" required>
-                </div>
-                <div class="form-group">
-                    <label>URL da Imagem</label>
-                    <input type="url" id="imageUrl" required>
-                    <img id="image-preview" src="" alt="Prévia da Imagem">
-                </div>
-                <div class="form-group">
-                    <label>Data (AAAA-MM-DD)</label>
-                    <input type="date" id="date" required>
-                </div>
-                <div class="form-group">
-                    <label>Data Exibição (Ex: 09 de Junho de 2026)</label>
-                    <input type="text" id="displayDate" required>
-                </div>
-                <div class="form-group">
-                    <label>Descrição</label>
-                    <textarea id="description" rows="4" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Texto do Botão (Ex: Leia Mais)</label>
-                    <input type="text" id="readMoreText" value="Leia Mais">
-                </div>
-                <div class="form-group">
-                    <label>Link Instagram (Opcional)</label>
-                    <input type="url" id="instagramLink">
-                </div>
-                <div class="form-group">
-                    <label>Texto Alternativo (Acessibilidade)</label>
-                    <input type="text" id="altText">
-                </div>
-                <button type="submit" class="btn-save" id="btn-submit">Adicionar Notícia</button>
-            </form>
+            </div>
 
             <div class="admin-list">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <header class="admin-list-header">
                     <h3>Notícias Atuais</h3>
                     <div>
-                        <button class="btn-save" style="background-color: #3498db; margin-right: 5px;" onclick="Admin.triggerCSVImport()">Importar de CSV</button>
-                        <button class="btn-save" onclick="Admin.exportNewsToCSV()">Exportar para CSV</button>
+                        <button class="btn-save" onclick="Admin.openNewsModal()">Nova Notícia</button>
+                        <button class="btn-save btn-secondary" onclick="Admin.triggerCSVImport()">Importar CSV</button>
+                        <button class="btn-save btn-secondary" onclick="Admin.exportNewsToCSV()">Exportar CSV</button>
                     </div>
-                </div>
+                </header>
                 <input type="file" id="csv-import-input" accept=".csv" class="hidden">
-                <div class="form-group" style="margin-top: 10px;">
+                <div class="form-group">
                     <input type="search" id="admin-search-input" placeholder="Filtrar por título ou descrição...">
                 </div>
-                <div id="admin-news-items">
+                <div id="admin-news-items"> 
                     <!-- Lista preenchida via JS -->
                 </div>
+                <div id="pagination-controls" class="pagination-container"></div>
             </div>
         </div>
     </div>
+
+    <!-- Contêiner para as notificações Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="delete-confirmation-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Confirmar Exclusão</h3>
+            <p>Tem certeza que deseja excluir a notícia: <br><strong id="news-title-to-delete"></strong>?</p>
+            <div class="modal-buttons">
+                <button id="cancel-delete-btn" class="btn-cancel">Cancelar</button>
+                <button id="confirm-delete-btn" class="btn-confirm">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Carregamento (Spinner) -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
     <script src="admin.js"></script>
 </body>
 </html>

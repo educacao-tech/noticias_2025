@@ -3,6 +3,9 @@ const Admin = {
     LOGIN_URL: '/api/login',
     PASSWORD_URL: '/api/change-password',
     allNews: [],
+    filteredNews: [],
+    currentPage: 1,
+    itemsPerPage: 5, // Define quantas notícias aparecem por página
 
     init() {
         // Configurações que devem funcionar mesmo na tela de login
@@ -27,7 +30,7 @@ const Admin = {
         loginSection.classList.remove('shake-animation');
 
         if (!username || !password) {
-            alert('Por favor, preencha todos os campos.');
+            this.showToast('Por favor, preencha todos os campos.', 'error');
             return;
         }
 
@@ -48,13 +51,13 @@ const Admin = {
                 this.setupSearch();
                 this.setupCSVImport();
             } else {
-                alert('Credenciais inválidas');
+                this.showToast('Credenciais inválidas', 'error');
                 loginSection.classList.add('shake-animation');
                 loginSection.addEventListener('animationend', () => loginSection.classList.remove('shake-animation'), { once: true });
             }
         } catch (error) {
             console.error('Erro no login:', error);
-            alert('Erro ao conectar com o servidor');
+            this.showToast('Erro ao conectar com o servidor', 'error');
         }
     },
 
@@ -146,6 +149,26 @@ const Admin = {
         if (text) text.textContent = '';
     },
 
+    showToast(message, type = 'info', duration = 3000) {
+        const toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) return;
+    
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = '';
+        if (type === 'success') icon = '✅';
+        else if (type === 'error') icon = '❌';
+        else if (type === 'info') icon = 'ℹ️';
+    
+        toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-message">${message}</span>`;
+        toastContainer.appendChild(toast);
+    
+        setTimeout(() => {
+            toast.remove();
+        }, duration);
+    },
+
     isValidURL(string) {
         try {
             new URL(string);
@@ -163,12 +186,12 @@ const Admin = {
         const token = localStorage.getItem('auth_token');
 
         if (newPassword.length < 6) {
-            alert('A nova senha deve ter pelo menos 6 caracteres.');
+            this.showToast('A nova senha deve ter pelo menos 6 caracteres.', 'error');
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            alert('As senhas não coincidem. Por favor, verifique a digitação.');
+            this.showToast('As senhas não coincidem. Por favor, verifique a digitação.', 'error');
             return;
         }
         
@@ -188,18 +211,18 @@ const Admin = {
             const data = await response.json();
 
             if (response.ok) {
-                alert('Senha alterada com sucesso!');
+                this.showToast('Senha alterada com sucesso!', 'success');
                 this.togglePasswordSection(false);
             } else {
-                alert(data.message || 'Erro ao alterar senha');
+                this.showToast(data.message || 'Erro ao alterar senha', 'error');
                 // Adiciona a animação de shake se houver erro
                 passwordForm.classList.add('shake-animation');
                 // Remove a classe após a animação para que possa ser re-adicionada
                 passwordForm.addEventListener('animationend', () => passwordForm.classList.remove('shake-animation'), { once: true });
             }
         } catch (error) {
-            console.error('Erro:', error);
-            alert('Falha na comunicação com o servidor');
+            console.error('Erro ao alterar senha:', error);
+            this.showToast('Falha na comunicação com o servidor', 'error');
         }
     },
 
@@ -209,53 +232,86 @@ const Admin = {
 
         searchInput.addEventListener('input', () => {
             const term = searchInput.value.toLowerCase().trim();
-            const filtered = this.allNews.filter(item => 
+            this.filteredNews = this.allNews.filter(item => 
                 item.title.toLowerCase().includes(term) || 
                 item.description.toLowerCase().includes(term)
             );
-            this.renderNewsList(filtered);
+            this.currentPage = 1; // Volta para a primeira página ao buscar
+            this.renderNewsList();
         });
     },
 
     async loadNews() {
         const response = await fetch(this.API_URL);
         this.allNews = await response.json();
-        this.renderNewsList(this.allNews);
+        this.filteredNews = [...this.allNews];
+        this.currentPage = 1;
+        this.renderNewsList();
     },
 
-    renderNewsList(news) {
+    renderNewsList() {
         const list = document.getElementById('admin-news-items');
         if (!list) return;
         list.innerHTML = '';
 
-        news.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'admin-item';
-            div.innerHTML = `
-                <span>${item.title}</span>
-                <div>
+        // Lógica de Paginação: Corta o array para exibir apenas os itens da página atual
+        const start = (this.currentPage - 1) * this.itemsPerPage;
+        const end = start + this.itemsPerPage;
+        const pageItems = this.filteredNews.slice(start, end);
+
+        pageItems.forEach(item => {
+            const listItem = document.createElement('div');
+            listItem.className = 'admin-list-item';
+            listItem.innerHTML = `
+                <img src="${item.imageUrl}" alt="${item.altText || 'Imagem da notícia'}">
+                <div class="admin-item-details">
+                    <h4>${item.title}</h4>
+                    <p>${item.description}</p>
+                </div>
+                <div class="admin-item-actions">
                     <button class="btn-edit" onclick='Admin.fillFormForEdit(${JSON.stringify(item)})'>Editar</button>
-                    <button class="btn-delete" onclick="Admin.deleteNews('${item.id}')">Excluir</button>
+                    <button class="btn-delete" onclick="Admin.showDeleteConfirmation('${item.id}', '${item.title}')">Excluir</button>
                 </div>
             `;
-            list.appendChild(div);
+            list.appendChild(listItem);
         });
+
+        this.renderPaginationControls();
+    },
+
+    renderPaginationControls() {
+        const container = document.getElementById('pagination-controls');
+        if (!container) return;
+
+        const totalPages = Math.ceil(this.filteredNews.length / this.itemsPerPage);
+
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        container.innerHTML = `
+            <button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
+                onclick="Admin.changePage(${this.currentPage - 1})">Anterior</button>
+            <span class="pagination-info">Página ${this.currentPage} de ${totalPages}</span>
+            <button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} 
+                onclick="Admin.changePage(${this.currentPage + 1})">Próxima</button>
+        `;
+    },
+
+    changePage(page) {
+        this.currentPage = page;
+        this.renderNewsList();
+        // Rola suavemente para o início da lista ao mudar de página
+        document.querySelector('.admin-list').scrollIntoView({ behavior: 'smooth' });
     },
 
     exportNewsToCSV() {
-        // Decide qual lista exportar: a filtrada ou todas as notícias
-        const searchInput = document.getElementById('admin-search-input');
-        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-        
-        const newsToExport = searchTerm 
-            ? this.allNews.filter(item => 
-                item.title.toLowerCase().includes(searchTerm) || 
-                item.description.toLowerCase().includes(searchTerm)
-              )
-            : this.allNews;
+        // Exporta exatamente o que está sendo filtrado no momento
+        const newsToExport = this.filteredNews;
 
-        if (newsToExport.length === 0) {
-            alert('Não há notícias para exportar.');
+        if (newsToExport.length === 0) { // Use showToast instead of alert
+            this.showToast('Não há notícias para exportar.', 'info');
             return;
         }
 
@@ -339,17 +395,17 @@ const Admin = {
             try {
                 const response = await fetch(this.API_URL, {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(article)
                 });
                 if (response.ok) successCount++;
-            } catch (e) { console.error(`Erro na linha ${i}:`, e); }
+            } catch (e) { console.error(`Erro ao importar notícia na linha ${i}:`, e); }
         }
 
-        alert(`Importação concluída! ${successCount} notícias adicionadas.`);
+        this.showToast(`Importação concluída! ${successCount} notícias adicionadas.`, 'success');
         this.loadNews();
     },
 
@@ -392,17 +448,17 @@ const Admin = {
 
         // Validação de URLs antes de enviar para o servidor
         if (!this.isValidURL(article.link)) {
-            alert('O link da notícia não é uma URL válida.');
+            this.showToast('O link da notícia não é uma URL válida.', 'error');
             btn.disabled = false;
             return;
         }
         if (!this.isValidURL(article.imageUrl)) {
-            alert('A URL da imagem não é uma URL válida.');
+            this.showToast('A URL da imagem não é uma URL válida.', 'error');
             btn.disabled = false;
             return;
         }
         if (article.instagramLink && !this.isValidURL(article.instagramLink)) {
-            alert('O link do Instagram não é uma URL válida.');
+            this.showToast('O link do Instagram não é uma URL válida.', 'error');
             btn.disabled = false;
             return;
         }
@@ -410,7 +466,7 @@ const Admin = {
         try {
             const response = await fetch(this.API_URL, {
                 method: isEdit ? 'PUT' : 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
@@ -418,15 +474,34 @@ const Admin = {
             });
 
             if (response.ok) {
-                alert(isEdit ? 'Atualizado!' : 'Adicionado!');
+                this.showToast(isEdit ? 'Notícia atualizada com sucesso!' : 'Notícia adicionada com sucesso!', 'success');
                 this.resetForm();
                 this.loadNews();
             }
-        } catch (e) { alert('Erro ao salvar'); }
+        } catch (e) { this.showToast('Erro ao salvar a notícia.', 'error'); }
         btn.disabled = false;
     },
 
+    openNewsModal(isEdit = false) {
+        const modal = document.getElementById('news-modal');
+        const title = document.getElementById('modal-title');
+        if (!isEdit) {
+            this.resetForm();
+            title.textContent = 'Adicionar Nova Notícia';
+        } else {
+            title.textContent = 'Editar Notícia';
+        }
+        modal.classList.add('visible');
+    },
+
+    closeNewsModal() {
+        const modal = document.getElementById('news-modal');
+        modal.classList.remove('visible');
+        this.resetForm();
+    },
+
     fillFormForEdit(article) {
+        this.openNewsModal(true);
         document.getElementById('news-id').value = article.id;
         document.getElementById('title').value = article.title;
         document.getElementById('link').value = article.link;
@@ -447,27 +522,61 @@ const Admin = {
     },
 
     resetForm() {
-        document.getElementById('news-form').reset();
-        document.getElementById('news-id').value = '';
-        document.getElementById('edit-mode').value = 'false';
-        document.getElementById('btn-submit').textContent = 'Adicionar Notícia';
-        document.getElementById('image-preview').classList.remove('visible');
+        const form = document.getElementById('news-form');
+        if (form) form.reset();
+        const idField = document.getElementById('news-id');
+        if (idField) idField.value = '';
+        const editModeField = document.getElementById('edit-mode');
+        if (editModeField) editModeField.value = 'false';
+        const btnSubmit = document.getElementById('btn-submit');
+        if (btnSubmit) btnSubmit.textContent = 'Salvar Notícia';
+        const imgPreview = document.getElementById('image-preview');
+        if (imgPreview) imgPreview.classList.remove('visible');
     },
 
-    async deleteNews(id) {
-        if (!confirm('Excluir esta notícia?')) return;
+    // Funções para o modal de confirmação de exclusão
+    showDeleteConfirmation(id, title) {
+        const modal = document.getElementById('delete-confirmation-modal');
+        const newsTitleSpan = document.getElementById('news-title-to-delete');
+        newsTitleSpan.textContent = title;
+        modal.classList.add('visible');
+
+        // Armazena o ID da notícia a ser excluída no botão de confirmação
+        document.getElementById('confirm-delete-btn').dataset.newsId = id;
+
+        // Adiciona listeners para os botões do modal
+        document.getElementById('confirm-delete-btn').onclick = () => this.confirmDelete();
+        document.getElementById('cancel-delete-btn').onclick = () => this.hideDeleteConfirmation();
+    },
+
+    hideDeleteConfirmation() {
+        const modal = document.getElementById('delete-confirmation-modal');
+        modal.classList.remove('visible');
+        document.getElementById('confirm-delete-btn').dataset.newsId = ''; // Limpa o ID
+    },
+
+    async confirmDelete() {
+        const id = document.getElementById('confirm-delete-btn').dataset.newsId;
+        if (!id) return; // Não faz nada se o ID não estiver definido
+
         const token = localStorage.getItem('auth_token');
         
         const response = await fetch(this.API_URL, {
             method: 'DELETE',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ id })
         });
 
-        if (response.ok) this.loadNews();
+        if (response.ok) {
+            this.showToast('Notícia excluída com sucesso!', 'success');
+            this.loadNews();
+        } else {
+            this.showToast('Erro ao excluir notícia.', 'error');
+        }
+        this.hideDeleteConfirmation(); // Esconde o modal após a ação
     }
 };
 
