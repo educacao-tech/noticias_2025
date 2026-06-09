@@ -28,6 +28,7 @@ const App = {
             this.themeStatus = document.getElementById('theme-status');
             this.htmlEl = document.documentElement;
             this.setInitialTheme();
+            this.addLoginButtonListener(); // Adiciona o listener para o botão de login
             this.addEventListeners();
         },
 
@@ -49,6 +50,13 @@ const App = {
             this.themeToggle.addEventListener('animationend', () => {
                 this.themeToggle.classList.remove('rotating');
             }, { once: true });
+        },
+
+        addLoginButtonListener() {
+            const loginButton = document.getElementById('login-button');
+            if (loginButton) {
+                loginButton.addEventListener('click', () => window.location.href = 'admin.html');
+            }
         },
 
         update(theme) {
@@ -92,8 +100,11 @@ const App = {
         },
 
         render(newsData) {
+            // Remove duplicatas baseadas na URL do link antes de processar
+            const uniqueData = Array.from(new Map(newsData.map(article => [article.link, article])).values());
+
             // Filtra as notícias para incluir apenas as publicadas e depois ordena pela data
-            const publishedNews = newsData
+            const publishedNews = uniqueData
                 .filter(article => article.published)
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
 

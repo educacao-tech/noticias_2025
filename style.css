@@ -64,7 +64,9 @@ body {
 }
 
 .theme-switcher-container {
-    text-align: right;
+    display: flex;
+    justify-content: flex-end; /* Alinha os itens à direita */
+    align-items: center; /* Centraliza verticalmente */
     padding: 0 var(--spacing-medium) var(--spacing-small);
 }
 

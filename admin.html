@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Notícias</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-container { max-width: 800px; margin: 40px auto; padding: 20px; background: var(--card-bg-color); border-radius: var(--border-radius); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--background-color); color: var(--text-color); }
+        .btn-save { background-color: #27ae60; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .admin-list { margin-top: 40px; border-top: 2px solid var(--border-color); padding-top: 20px; }
+        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border-color); }
+        .btn-delete { background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+        .btn-edit { background: #f39c12; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-right: 5px; }        
+        #login-section { text-align: center; }
+        #image-preview { max-width: 100%; height: auto; margin-top: 10px; border: 1px solid var(--border-color); border-radius: 4px; display: none; }
+        #image-preview.visible { display: block; }
+        .hidden { display: none !important; } /* Garante que a classe hidden sempre funcione */
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Seção de Login -->
+        <div id="login-section">
+            <h2>Login Administrativo</h2>
+            <div class="form-group">
+                <input type="text" id="username" placeholder="Usuário">
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="Senha">
+            </div>
+            <button class="btn-save" onclick="Admin.login()">Entrar</button>
+        </div>
+
+        <!-- Seção de Gerenciamento (Escondida inicialmente) -->
+        <div id="admin-content" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Gerenciar Notícias</h2>
+                <button onclick="Admin.logout()" style="background:none; border:none; color:var(--primary-color); cursor:pointer;">Sair</button>
+            </div>
+            
+            <form id="news-form" onsubmit="Admin.handleSubmit(event)">
+                <input type="hidden" id="edit-mode" value="false">
+                <input type="hidden" id="news-id" value="">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label>Link da Notícia (Identificador Único)</label>
+                    <input type="url" id="link" required>
+                </div>
+                <div class="form-group">
+                    <label>URL da Imagem</label>
+                    <input type="url" id="imageUrl" required>
+                    <img id="image-preview" src="" alt="Prévia da Imagem">
+                </div>
+                <div class="form-group">
+                    <label>Data (AAAA-MM-DD)</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label>Data Exibição (Ex: 09 de Junho de 2026)</label>
+                    <input type="text" id="displayDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Texto do Botão (Ex: Leia Mais)</label>
+                    <input type="text" id="readMoreText" value="Leia Mais">
+                </div>
+                <div class="form-group">
+                    <label>Link Instagram (Opcional)</label>
+                    <input type="url" id="instagramLink">
+                </div>
+                <div class="form-group">
+                    <label>Texto Alternativo (Acessibilidade)</label>
+                    <input type="text" id="altText">
+                </div>
+                <button type="submit" class="btn-save" id="btn-submit">Adicionar Notícia</button>
+            </form>
+
+            <div class="admin-list" id="admin-list">
+                <h3>Notícias Atuais</h3>
+                <!-- Lista preenchida via JS -->
+            </div>
+        </div>
+    </div>
+    <script src="admin.js"></script>
+</body>
+</html>

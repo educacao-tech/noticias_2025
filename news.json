@@ -1,6 +1,42 @@
 [
     {
         "published": true,
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3742_570_370_202602031349104125050.jpg",
+        "altText": "Projeto desenvolvido em parceria com a Secretaria de Educação de Batatais recebe Selo ODS Educação da Unesp",
+        "date": "2026-02-03",
+        "displayDate": "03 de Fevereiro de 2026",
+        "instagramLink": "https://www.instagram.com/p/DUTastnkRUR/?img_index=1",
+        "link": "https://www.batatais.sp.gov.br/noticias/projeto-desenvolvido-em-parceria-com-a-secretaria-de-educacao-de-batatais-recebe-selo-ods-educacao-da-unesp",
+        "title": "🏅Projeto desenvolvido em parceria com a SME Batatais recebe Selo ODS Educação da Unesp 🌍📚",
+        "description": "A Secretaria Municipal de Educação de Batatais destaca o reconhecimento do Programa de Promoção da Convivência Ética e Prevenção da Violência nas Escolas, desenvolvido em parceria com a Unesp (Universidade Estadual Paulista), que recebeu o Selo ODS Educação 2025, concedido pela Rede Temática Unesp Agenda 2030.",
+        "readMoreText": "Leia Mais"
+    },
+    {
+        "published": true,
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3738_570_370_202601280850249707330.jpeg",
+        "altText": "📚✨ Escolas Municipais de Batatais avançam no Índice de Fluência Leitora em 2025",
+        "date": "2026-01-28",
+        "displayDate": "28 de Janeiro de 2026",
+        "instagramLink": "https://www.instagram.com/p/DUDbVeMjYql/",
+        "link": "https://www.batatais.sp.gov.br/noticias/escolas-municipais-de-batatais-avancam-no-indice-de-fluencia-leitora-em-2025",
+        "title": "📚✨ Escolas Municipais de Batatais avançam no Índice de Fluência Leitora em 2025",
+        "description": "A Educação Municipal de Batatais segue colhendo excelentes resultados. Dados da Avaliação de Fluência Leitora, aplicada anualmente no Estado de São Paulo, apontam um avanço significativo no desempenho dos estudantes do 2º ano do Ensino Fundamental da rede municipal em 2025.",
+        "readMoreText": "Leia Mais"
+    },
+    {
+        "published": true,
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3720_570_370_202601151513521143540.jpg",
+        "altText": "📚✨ MATRÍCULAS ABERTAS PARA A EJA EM BATATAIS – 2026 ✨📚",
+        "date": "2026-01-15",
+        "displayDate": "15 de Janeiro de 2026",
+        "instagramLink": "https://www.instagram.com/p/DTiqYC3kQ4R/?img_index=1",
+        "link": "https://www.batatais.sp.gov.br/noticias/secretaria-de-educacao-de-batatais-abre-matriculas-para-a-eja",
+        "title": "📚✨ MATRÍCULAS ABERTAS PARA A EJA EM BATATAIS – 2026 ✨📚",
+        "description": "A Prefeitura de Batatais, por meio da Secretaria Municipal de Educação, está com matrículas abertas para a EJA (Educação de Jovens e Adultos), modalidade voltada a pessoas que não concluíram os estudos na idade regular e desejam retomar a vida escolar em 2026.",
+        "readMoreText": "Leia Mais"
+    },
+    {
+        "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3678_570_370_202512011715590632000.jpg",
         "altText": "Secretaria de Educação de Batatais realiza a 3ª Edição da Feira de Tecnologia e Inovação",
         "date": "2025-12-01",
@@ -11,7 +47,6 @@
         "description": "A Prefeitura de Batatais, por meio da Secretaria Municipal de Educação, promove, nos dias 2, 3 e 4 de dezembro, a 3ª Edição da Feira de Tecnologia e Inovação. O evento, que será realizado no Salão da ProArte, das 8h às 11h e das 13h às 14h, apresentará projetos desenvolvidos ao longo do ano pelos estudantes na disciplina de Tecnologia e Inovação.",
         "readMoreText": "Leia Mais"
     },
-
     {
         "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3670_570_370_202511251545055318320.jpg",
@@ -24,7 +59,6 @@
         "description": "A Prefeitura de Batatais, por meio da Secretaria Municipal de Educação, convida alunos, familiares, professores e toda a comunidade para a cerimônia de premiação do Concurso de Leitura “Elefante Letrado”. O evento celebra o talento e a dedicação dos estudantes da rede municipal do 1º ao 5º ano que se destacaram na iniciativa, que incentiva o hábito da leitura e a imaginação.",
         "readMoreText": "Leia Mais"
     },
-    
     {
         "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3662_570_370_202511171701473086660.jpg",
@@ -36,11 +70,11 @@
         "title": "Secretaria de Educação realiza Festival da Educação Infantil com o tema Brinquedos e Brincadeiras",
         "description": "A Prefeitura Municipal, por meio da Secretaria de Educação, realizará nesta terça e quarta-feira, dias 18 e 19 de novembro, às 19h, no Teatro Municipal, o tradicional Festival da Educação Infantil, evento já consolidado no calendário pedagógico da rede municipal de ensino. A programação é voltada aos estudantes da pré-escola, com entrada gratuita para as famílias.",
         "readMoreText": "Leia Mais"
-    }, 
+    },
     {
         "published": true,
         "imageUrl": "https://img.youtube.com/vi/iOdAQZuFogE/maxresdefault.jpg",
-        "altText": "",
+        "altText": "Miniatura do vídeo da 5ª Feira de Conhecimentos 2025 da EMEB Padre Benito",
         "date": "2025-11-12",
         "displayDate": "12 de Novembro de 2025",
         "instagramLink": "",
@@ -121,7 +155,6 @@
         "description": "A Escola Municipal “Professora Anna Bonagura de Andrade”, localizada no Jardim Elena, em Batatais, foi reconhecida com o Prêmio de Excelência Educacional, concedido pelo Governo do Estado de São Paulo, por ter atingido as metas do IEE (Índice de Excelência Educacional) no âmbito do programa Alfabetiza Juntos SP.",
         "readMoreText": "Leia Mais"
     },
- 
     {
         "published": true,
         "imageUrl": "https://www.educadoraonline.com.br/site/wp-content/uploads/2025/09/CAPA-CTV-18-09-2025-ESCOLA-OURO-555x312.jpg",
