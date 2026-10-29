@@ -75,7 +75,7 @@ const App = {
         allNews: [],
         filteredNews: [],
         currentPage: 1,
-        itemsPerPage: 6, // 6 notícias por página para grid equilibrado (ex: 2x3 ou 3x2)
+        itemsPerPage: 8, // 8 notícias por página (2 linhas de 4 colunas) // 6 notícias por página para grid equilibrado (ex: 2x3 ou 3x2)
         searchTerm: '',
 
         async init() {

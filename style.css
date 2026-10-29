@@ -142,12 +142,30 @@ h1 {
 
 .news-preview-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(4, 1fr); /* 4 colunas de notícias */
     gap: var(--spacing-medium);
-    max-width: 1200px;
+    max-width: 1440px; /* Largura expandida para acomodar as 4 colunas confortavelmente */
     margin: 0 auto var(--spacing-large);
     padding: 0 var(--spacing-medium);
     justify-content: center;
+}
+
+@media (max-width: 1200px) {
+    .news-preview-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 850px) {
+    .news-preview-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 550px) {
+    .news-preview-container {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Regra para animar a saída dos cards.
