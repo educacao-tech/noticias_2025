@@ -1,6 +1,7 @@
 const App = {
     async init() {
         this.theme.init();
+        this.lightbox.init();
         await this.news.init();
         this.filter.init();
         this.ui.init();
@@ -69,6 +70,119 @@ const App = {
     },
 
     /**
+     * Módulo de Registro de Visualizações (Métricas de Engajamento).
+     */
+    views: {
+        async record(id) {
+            if (!id) return;
+            try {
+                await fetch('/api/news/view', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+            } catch (_) {
+                // Silencioso se falhar no backend
+            }
+        }
+    },
+
+    /**
+     * Módulo Lightbox - Visualizador de Fotos em Alta Resolução com Galeria.
+     */
+    lightbox: {
+        images: [],
+        currentIndex: 0,
+        captionText: '',
+
+        init() {
+            this.modal = document.getElementById('lightbox-modal');
+            this.mainImg = document.getElementById('lightbox-main-img');
+            this.caption = document.getElementById('lightbox-caption');
+            this.counter = document.getElementById('lightbox-counter');
+            this.downloadBtn = document.getElementById('lightbox-download-btn');
+            this.prevBtn = document.getElementById('lightbox-prev-btn');
+            this.nextBtn = document.getElementById('lightbox-next-btn');
+
+            if (!this.modal) return;
+
+            // Fechar ao clicar fora da imagem
+            this.modal.addEventListener('click', (e) => {
+                if (e.target === this.modal || e.target.classList.contains('lightbox-content-wrapper') || e.target.classList.contains('lightbox-image-box')) {
+                    this.close();
+                }
+            });
+
+            // Teclado
+            document.addEventListener('keydown', (e) => {
+                if (!this.modal.classList.contains('active')) return;
+                if (e.key === 'Escape') this.close();
+                if (e.key === 'ArrowLeft') this.prev();
+                if (e.key === 'ArrowRight') this.next();
+            });
+        },
+
+        open(images, startIndex = 0, caption = '') {
+            if (!images || images.length === 0) return;
+            this.images = Array.isArray(images) ? images : [images];
+            this.currentIndex = startIndex >= 0 && startIndex < this.images.length ? startIndex : 0;
+            this.captionText = caption;
+
+            this.updateImage();
+            this.modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Evita scroll do fundo
+        },
+
+        close() {
+            if (!this.modal) return;
+            this.modal.classList.remove('active');
+            if (this.mainImg) this.mainImg.classList.remove('zoomed');
+            document.body.style.overflow = '';
+        },
+
+        updateImage() {
+            const currentUrl = this.images[this.currentIndex];
+            this.mainImg.src = currentUrl;
+            this.mainImg.classList.remove('zoomed');
+
+            if (this.caption) this.caption.textContent = this.captionText;
+            if (this.counter) this.counter.textContent = `${this.currentIndex + 1} de ${this.images.length}`;
+            if (this.downloadBtn) this.downloadBtn.href = currentUrl;
+
+            // Controle das setas
+            const hasMultiple = this.images.length > 1;
+            if (this.prevBtn) {
+                this.prevBtn.style.display = hasMultiple ? 'inline-flex' : 'none';
+                this.prevBtn.disabled = this.currentIndex === 0;
+            }
+            if (this.nextBtn) {
+                this.nextBtn.style.display = hasMultiple ? 'inline-flex' : 'none';
+                this.nextBtn.disabled = this.currentIndex === this.images.length - 1;
+            }
+        },
+
+        next() {
+            if (this.currentIndex < this.images.length - 1) {
+                this.currentIndex++;
+                this.updateImage();
+            }
+        },
+
+        prev() {
+            if (this.currentIndex > 0) {
+                this.currentIndex--;
+                this.updateImage();
+            }
+        },
+
+        toggleZoom() {
+            if (this.mainImg) {
+                this.mainImg.classList.toggle('zoomed');
+            }
+        }
+    },
+
+    /**
      * Módulo de Carregamento, Filtragem e Paginação.
      */
     news: {
@@ -77,7 +191,7 @@ const App = {
         currentPage: 1,
         itemsPerPage: 8, // 8 notícias por página (2 linhas completas de 4 colunas)
         currentCategory: 'all',
-        currentYear: '2026',
+        currentYear: 'all',
         searchTerm: '',
 
         async init() {
@@ -121,20 +235,20 @@ const App = {
             if (!container) return;
 
             const categories = [
-                'Todas',
-                'Educação Básica',
-                'Projetos & Inovação',
-                'Premiações',
-                'Alimentação Escolar',
-                'Eventos'
+                { id: 'all', label: 'Todas' },
+                { id: 'most_read', label: '🔥 Mais Lidas' },
+                { id: 'Educação Básica', label: 'Educação Básica' },
+                { id: 'Projetos & Inovação', label: 'Projetos & Inovação' },
+                { id: 'Premiações', label: 'Premiações' },
+                { id: 'Alimentação Escolar', label: 'Alimentação Escolar' },
+                { id: 'Eventos', label: 'Eventos' }
             ];
 
             container.innerHTML = categories.map(cat => {
-                const val = cat === 'Todas' ? 'all' : cat;
-                const active = val === this.currentCategory ? 'active' : '';
+                const active = cat.id === this.currentCategory ? 'active' : '';
                 return `
-                    <button class="category-pill ${active}" onclick="App.news.setCategory('${val}', this)">
-                        ${cat}
+                    <button class="category-pill ${active}" onclick="App.news.setCategory('${cat.id}', this)">
+                        ${cat.label}
                     </button>
                 `;
             }).join('');
@@ -166,8 +280,11 @@ const App = {
                 list = list.filter(item => (item.date || '').startsWith(this.currentYear));
             }
 
-            // Filtro de categoria
-            if (this.currentCategory !== 'all') {
+            // Filtro de categoria e ordenação especial Mais Lidas
+            if (this.currentCategory === 'most_read') {
+                // Ordena pelas mais visualizadas
+                list = list.sort((a, b) => (b.views || 0) - (a.views || 0));
+            } else if (this.currentCategory !== 'all') {
                 list = list.filter(item => (item.category || 'Educação Básica') === this.currentCategory);
             }
 
@@ -202,10 +319,8 @@ const App = {
 
             // Renderizar Notícia em Destaque (Hero Banner) apenas na página 1 e sem busca específica
             if (this.currentPage === 1 && !this.searchTerm && this.currentCategory === 'all') {
-                // Encontra a notícia marcada com featured ou usa a primeira
                 const featuredIndex = gridItems.findIndex(n => n.featured);
                 const heroNews = featuredIndex !== -1 ? gridItems.splice(featuredIndex, 1)[0] : gridItems.shift();
-
                 this.renderHero(heroNews);
             } else {
                 if (this.heroContainer) this.heroContainer.classList.add('hidden');
@@ -237,32 +352,39 @@ const App = {
 
             const fallbackImg = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&q=80';
             const readingTime = this.calcReadingTime(article.description);
+            const allImages = [article.imageUrl, ...(article.gallery || [])].filter(Boolean);
+            const encodedGallery = encodeURIComponent(JSON.stringify(allImages));
+            const safeTitle = (article.title || '').replace(/'/g, "\\'");
 
             this.heroContainer.innerHTML = `
                 <div class="hero-card">
-                    <div class="hero-img-wrapper">
+                    <div class="hero-img-wrapper card-img-container" 
+                         onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}'); App.views.record('${article.id}');"
+                         title="Clique para ver a foto ampliada">
                         <img src="${article.imageUrl || fallbackImg}" alt="${article.altText || article.title}" onerror="this.src='${fallbackImg}'">
+                        ${allImages.length > 1 ? `<span class="badge-gallery-count">🖼️ +${allImages.length - 1} fotos</span>` : ''}
                     </div>
                     <div class="hero-content">
                         <div class="hero-badge-row">
                             <span class="badge-hero">⭐ Notícia em Destaque</span>
                             <span class="badge-category">📂 ${article.category || 'Educação Básica'}</span>
+                            <span class="badge-views">👁️ ${article.views || 0} acessos</span>
                             <span class="reading-time">⏱️ ${readingTime}</span>
                         </div>
                         <h2 class="hero-title">
-                            <a href="${article.link}" target="_blank" rel="noopener noreferrer">${article.title}</a>
+                            <a href="${article.link}" target="_blank" rel="noopener noreferrer" onclick="App.views.record('${article.id}')">${article.title}</a>
                         </h2>
                         <time class="news-date" style="margin-bottom: 12px; font-weight: 600;">📅 ${article.displayDate || article.date}</time>
                         <p class="hero-desc">${article.description}</p>
                         <div class="hero-footer">
-                            <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="read-more" style="font-weight: 700; color: var(--primary-color);">
+                            <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="read-more" style="font-weight: 700; color: var(--primary-color);" onclick="App.views.record('${article.id}')">
                                 Ler matéria completa →
                             </a>
                             <div style="display: flex; gap: 8px;">
-                                <button class="card-tool-btn" onclick="App.speech.speak('${encodeURIComponent(article.title + '. ' + article.description)}')">
+                                <button class="card-tool-btn" onclick="App.speech.speak('${encodeURIComponent(article.title + '. ' + article.description)}'); App.views.record('${article.id}')">
                                     🔊 Ouvir
                                 </button>
-                                <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(article.title + ' - ' + article.link)}" target="_blank" rel="noopener noreferrer" class="card-tool-btn btn-whatsapp">
+                                <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(article.title + ' - ' + article.link)}" target="_blank" rel="noopener noreferrer" class="card-tool-btn btn-whatsapp" onclick="App.views.record('${article.id}')">
                                     💬 WhatsApp
                                 </a>
                                 <button class="card-tool-btn" onclick="App.share.copy('${article.link}')">
@@ -290,22 +412,29 @@ const App = {
             const readingTime = this.calcReadingTime(article.description);
             const encodedText = encodeURIComponent(`${article.title}. ${article.description}`);
             const encodedShare = encodeURIComponent(`${article.title} - ${article.link}`);
+            const allImages = [article.imageUrl, ...(article.gallery || [])].filter(Boolean);
+            const encodedGallery = encodeURIComponent(JSON.stringify(allImages));
+            const safeTitle = (article.title || '').replace(/'/g, "\\'");
 
             return `
                 <article class="news-card">
-                    <img src="${article.imageUrl || fallbackImg}"
-                         alt="${article.altText || article.title}"
-                         loading="lazy"
-                         onerror="this.src='${fallbackImg}'">
+                    <div class="card-img-container" onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}'); App.views.record('${article.id}');" title="Clique para ver a foto ampliada">
+                        <img src="${article.imageUrl || fallbackImg}"
+                             alt="${article.altText || article.title}"
+                             loading="lazy"
+                             onerror="this.src='${fallbackImg}'">
+                        ${allImages.length > 1 ? `<span class="badge-gallery-count">🖼️ +${allImages.length - 1} fotos</span>` : ''}
+                    </div>
                     <div class="news-content">
                         <div class="card-meta">
                             <span class="badge-category">📂 ${article.category || 'Geral'}</span>
+                            <span class="badge-views">👁️ ${article.views || 0}</span>
                             <span class="reading-time">⏱️ ${readingTime}</span>
                         </div>
                         <time class="news-date" datetime="${article.date}" style="margin-bottom: 6px; font-weight: 600;">
                             📅 ${article.displayDate || article.date}
                         </time>
-                        <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="stretched-link">
+                        <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="stretched-link" onclick="App.views.record('${article.id}')">
                             <h3>${title}</h3>
                         </a>
                         <p>${description}</p>
@@ -316,10 +445,10 @@ const App = {
 
                         <!-- Barra de Ferramentas / Social / Voz -->
                         <div class="card-tools-bar">
-                            <button class="card-tool-btn" onclick="event.preventDefault(); App.speech.speak('${encodedText}')" title="Ouvir notícia">
+                            <button class="card-tool-btn" onclick="event.preventDefault(); App.speech.speak('${encodedText}'); App.views.record('${article.id}')" title="Ouvir notícia">
                                 🔊 Ouvir
                             </button>
-                            <a href="https://api.whatsapp.com/send?text=${encodedShare}" target="_blank" rel="noopener noreferrer" class="card-tool-btn btn-whatsapp" onclick="event.stopPropagation();" title="Compartilhar no WhatsApp">
+                            <a href="https://api.whatsapp.com/send?text=${encodedShare}" target="_blank" rel="noopener noreferrer" class="card-tool-btn btn-whatsapp" onclick="event.stopPropagation(); App.views.record('${article.id}')" title="Compartilhar no WhatsApp">
                                 💬 WhatsApp
                             </a>
                             <button class="card-tool-btn" onclick="event.preventDefault(); event.stopPropagation(); App.share.copy('${article.link}')" title="Copiar link da notícia">
@@ -329,6 +458,15 @@ const App = {
                     </div>
                 </article>
             `;
+        },
+
+        openGallery(encodedImages, title) {
+            try {
+                const images = JSON.parse(decodeURIComponent(encodedImages));
+                App.lightbox.open(images, 0, title);
+            } catch (_) {
+                App.lightbox.open([decodeURIComponent(encodedImages)], 0, title);
+            }
         },
 
         calcReadingTime(text) {
@@ -430,7 +568,6 @@ const App = {
                 await navigator.clipboard.writeText(link);
                 App.ui.showToast('Link copiado para a área de transferência!', 'success');
             } catch (_) {
-                // Fallback para navegadores antigos
                 const input = document.createElement('input');
                 input.value = link;
                 document.body.appendChild(input);

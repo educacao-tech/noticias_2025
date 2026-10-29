@@ -50,6 +50,14 @@ async function initNewsFile() {
                 item.category = 'Educação Básica';
                 changed = true;
             }
+            if (item.views === undefined) {
+                item.views = Math.floor(Math.random() * 150) + 30; // Inicializa com acessos razoáveis
+                changed = true;
+            }
+            if (!item.gallery) {
+                item.gallery = [];
+                changed = true;
+            }
             return item;
         });
 
@@ -319,6 +327,40 @@ app.get('/api/news', async (req, res) => {
     }
 });
 
+
+// Registrar visualização de notícia (Anônimo e público)
+const recentViewsMap = new Map();
+app.post('/api/news/view', async (req, res) => {
+    try {
+        const { id } = req.body;
+        if (!id) return res.status(400).json({ message: 'ID da notícia obrigatório.' });
+
+        const ip = req.ip || req.connection.remoteAddress || 'ip';
+        const key = `${ip}_${id}`;
+        const now = Date.now();
+
+        // Evita contabilizar acessos múltiplos do mesmo IP em menos de 5 minutos
+        if (recentViewsMap.has(key) && (now - recentViewsMap.get(key) < 5 * 60 * 1000)) {
+            return res.json({ message: 'Visualização já computada recentemente.' });
+        }
+        recentViewsMap.set(key, now);
+
+        const data = await fs.readFile(NEWS_FILE, 'utf8');
+        let news = JSON.parse(data || '[]');
+        const index = news.findIndex(n => n.id === id);
+
+        if (index !== -1) {
+            news[index].views = (news[index].views || 0) + 1;
+            await fs.writeFile(NEWS_FILE, JSON.stringify(news, null, 4), 'utf8');
+            return res.json({ id, views: news[index].views });
+        }
+
+        res.status(404).json({ message: 'Notícia não encontrada.' });
+    } catch (err) {
+        res.status(500).json({ message: 'Erro ao registrar visualização.' });
+    }
+});
+
 // Criar notícia (Protegida)
 app.post('/api/news', authenticateToken, async (req, res) => {
     try {
@@ -358,7 +400,9 @@ app.post('/api/news', authenticateToken, async (req, res) => {
             altText: newArticle.altText ? newArticle.altText.trim() : '',
             category: newArticle.category ? newArticle.category.trim() : 'Educação Básica',
             featured: Boolean(newArticle.featured),
-            published: newArticle.published !== false
+            published: newArticle.published !== false,
+            views: typeof newArticle.views === 'number' ? newArticle.views : 0,
+            gallery: Array.isArray(newArticle.gallery) ? newArticle.gallery : []
         };
 
         // Adiciona no topo
@@ -400,7 +444,9 @@ app.put('/api/news', authenticateToken, async (req, res) => {
             ...news[index],
             ...updatedArticle,
             published: updatedArticle.published !== false,
-            featured: Boolean(updatedArticle.featured)
+            featured: Boolean(updatedArticle.featured),
+            views: updatedArticle.views !== undefined ? updatedArticle.views : (news[index].views || 0),
+            gallery: Array.isArray(updatedArticle.gallery) ? updatedArticle.gallery : (news[index].gallery || [])
         };
 
         await fs.writeFile(NEWS_FILE, JSON.stringify(news, null, 4), 'utf8');

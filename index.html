@@ -40,7 +40,7 @@
             <!-- Filtros de Categorias e Ano -->
             <div class="filter-pills-container">
                 <div class="category-pills" id="category-pills">
-                    <!-- Gerado dinamicamente via JS -->
+                    <!-- Gerado dinamicamente via JS (Todas, Mais Lidas, etc.) -->
                 </div>
                 <div class="year-selector-wrapper">
                     <select id="year-filter-select" class="year-select" aria-label="Filtrar por ano">
@@ -79,7 +79,37 @@
     <!-- Toast de Notificações (ex: Link copiado) -->
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Script principal com busca, paginação, áudio e filtros -->
+    <!-- ================= Modal Lightbox de Imagens (Alta Resolução) ================= -->
+    <div id="lightbox-modal" class="lightbox-overlay" role="dialog" aria-modal="true" aria-label="Visualizador de imagem em alta resolução">
+        <div class="lightbox-toolbar">
+            <span id="lightbox-counter" class="lightbox-counter">1 de 1</span>
+            <div class="lightbox-actions">
+                <a id="lightbox-download-btn" href="#" download class="lightbox-btn" title="Baixar imagem em alta resolução" target="_blank">
+                    💾 Baixar Imagem
+                </a>
+                <button type="button" id="lightbox-close-btn" class="lightbox-btn close" onclick="App.lightbox.close()" title="Fechar (ESC)">
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <div class="lightbox-content-wrapper">
+            <button type="button" id="lightbox-prev-btn" class="lightbox-nav-btn prev" onclick="App.lightbox.prev()" title="Foto anterior">
+                &#10094;
+            </button>
+
+            <div class="lightbox-image-box">
+                <img id="lightbox-main-img" src="" alt="Imagem ampliada" onclick="App.lightbox.toggleZoom()" title="Clique para dar Zoom">
+                <div id="lightbox-caption" class="lightbox-caption"></div>
+            </div>
+
+            <button type="button" id="lightbox-next-btn" class="lightbox-nav-btn next" onclick="App.lightbox.next()" title="Próxima foto">
+                &#10095;
+            </button>
+        </div>
+    </div>
+
+    <!-- Script principal com busca, paginação, áudio, lightbox e métricas -->
     <script src="script.js"></script>
 
     <!-- Início do Plugin V-Libras -->

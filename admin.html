@@ -142,26 +142,26 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon green">📅</div>
+                    <div class="stat-icon green">👀</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-total-views">--</div>
+                        <div class="stat-label">Total de Visualizações</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">🔥</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-top-views" style="font-size: 1.15rem;">--</div>
+                        <div class="stat-label">Notícia Mais Lida</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">📅</div>
                     <div class="stat-content">
                         <div class="stat-value" id="stat-year-news">--</div>
                         <div class="stat-label">Notícias em 2026</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon purple">🕒</div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="stat-latest-date" style="font-size: 1.15rem;">--</div>
-                        <div class="stat-label">Última Publicação</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon orange">🔍</div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="stat-filtered-news">--</div>
-                        <div class="stat-label">Itens Filtrados</div>
                     </div>
                 </div>
             </section>
@@ -215,6 +215,7 @@
 
                     <select id="admin-sort-select" class="admin-filter-select" onchange="Admin.handleSortChange()">
                         <option value="date-desc">📅 Mais recentes primeiro</option>
+                        <option value="views-desc">🔥 Mais visualizadas</option>
                         <option value="date-asc">📅 Mais antigas primeiro</option>
                         <option value="title-asc">🔤 Título (A-Z)</option>
                         <option value="title-desc">🔤 Título (Z-A)</option>
@@ -310,6 +311,17 @@
                             <small>(Será otimizada e salva no servidor automaticamente)</small>
                         </div>
                         <img id="image-preview" src="" alt="Prévia da Imagem" class="hidden">
+                    </div>
+
+                    <div class="form-group" style="background: var(--background-color); padding: 12px; border-radius: 8px; border: 1px dashed var(--border-color);">
+                        <label style="margin-bottom: 6px;">📸 Galeria de Fotos Extras (Opcional)</label>
+                        <input type="file" id="gallery-file-input" accept="image/*" multiple class="hidden">
+                        <button type="button" class="btn-secondary-action" onclick="document.getElementById('gallery-file-input').click()" style="padding: 6px 12px; font-size: 0.85rem;">
+                            ➕ Adicionar Fotos à Galeria
+                        </button>
+                        <div id="gallery-previews" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+                            <!-- Miniaturas das fotos da galeria com botão de remover -->
+                        </div>
                     </div>
 
                     <div class="form-group">
