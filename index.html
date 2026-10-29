@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prévia das Notícias</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Portal de Notícias - Secretaria Municipal de Educação</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -13,11 +13,12 @@
 
     <main>
         <section class="latest-news" aria-labelledby="latest-news-title" role="region">
+            
+            <!-- Barra Superior com Controles de Tema e Acesso -->
             <div class="theme-switcher-container">
-                <button id="theme-toggle" class="theme-toggle-button" aria-label="Alternar tema">
-                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                        width="24" height="24">
-                        <!-- O path do ícone será inserido aqui pelo JS -->
+                <button id="theme-toggle" class="theme-toggle-button" aria-label="Alternar tema" title="Alternar Modo Escuro/Claro">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <!-- Ícone inserido via JS -->
                     </svg>
                 </button>
                 <button id="login-button" class="theme-toggle-button" aria-label="Acessar painel administrativo" title="Acessar Painel Administrativo">
@@ -28,16 +29,37 @@
                 <span id="theme-status" class="visually-hidden" aria-live="polite"></span>
             </div>
 
-            <h1 id="latest-news-title">Últimas Notícias e Entrevistas</h1>
+            <h1 id="latest-news-title">Últimas Notícias e Acontecimentos</h1>
 
+            <!-- Barra de Busca -->
             <div class="search-container">
                 <label for="search-input" class="visually-hidden">Filtrar notícias por título ou descrição</label>
-                <input type="search" id="search-input" placeholder="Buscar por título ou trecho da notícia...">
+                <input type="search" id="search-input" placeholder="Buscar notícias por título, assunto ou palavra-chave..." autocomplete="off">
             </div>
 
+            <!-- Filtros de Categorias e Ano -->
+            <div class="filter-pills-container">
+                <div class="category-pills" id="category-pills">
+                    <!-- Gerado dinamicamente via JS -->
+                </div>
+                <div class="year-selector-wrapper">
+                    <select id="year-filter-select" class="year-select" aria-label="Filtrar por ano">
+                        <option value="all">📅 Todos os Anos</option>
+                        <option value="2026" selected>Ano 2026</option>
+                        <option value="2025">Ano 2025</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Notícia em Destaque Principal (Hero Card) -->
+            <div id="hero-featured-news" class="hero-container hidden">
+                <!-- Inserido dinamicamente via JS -->
+            </div>
+
+            <!-- Grade com 4 Colunas de Notícias -->
             <div class="news-preview-container">
                 <div class="spinner"></div> <!-- Indicador de carregamento -->
-                <p class="no-results-message hidden">Nenhum resultado encontrado para a sua busca.</p>
+                <p class="no-results-message hidden">Nenhuma notícia encontrada com os filtros selecionados.</p>
                 <!-- As notícias serão inseridas aqui pelo JavaScript -->
             </div>
 
@@ -46,6 +68,7 @@
         </section>
     </main>
 
+    <!-- Botão Voltar ao Topo -->
     <button id="back-to-top" class="back-to-top-button" title="Voltar ao topo">
         <span class="visually-hidden">Voltar ao topo</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
@@ -53,7 +76,10 @@
         </svg>
     </button>
 
-    <!-- Adiciona o script para a funcionalidade de filtro e paginação -->
+    <!-- Toast de Notificações (ex: Link copiado) -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Script principal com busca, paginação, áudio e filtros -->
     <script src="script.js"></script>
 
     <!-- Início do Plugin V-Libras -->

@@ -70,9 +70,13 @@
                         <span id="theme-text-slot">Tema</span>
                     </button>
 
-                    <a href="/" target="_blank" class="btn-admin-nav" title="Abrir carrossel no site público">
+                    <a href="/" target="_blank" class="btn-admin-nav" title="Abrir portal de notícias público">
                         <span>🌐</span> Ver Site
                     </a>
+
+                    <button class="btn-admin-nav" onclick="Admin.openUsersModal()" title="Gerenciar administradores">
+                        <span>👥</span> Usuários
+                    </button>
 
                     <button class="btn-admin-nav" onclick="Admin.togglePasswordSection(true)">
                         <span>🔑</span> Alterar Senha
@@ -192,6 +196,23 @@
                         <button type="button" id="btn-clear-search" class="btn-clear-search" onclick="Admin.clearSearch()" title="Limpar busca">✕</button>
                     </div>
 
+                    <select id="admin-category-filter" class="admin-filter-select" onchange="Admin.handleCategoryFilterChange()">
+                        <option value="all">📂 Todas Categorias</option>
+                        <option value="Educação Básica">Educação Básica</option>
+                        <option value="Projetos & Inovação">Projetos & Inovação</option>
+                        <option value="Premiações">Premiações</option>
+                        <option value="Alimentação Escolar">Alimentação Escolar</option>
+                        <option value="Eventos">Eventos</option>
+                        <option value="Geral">Geral</option>
+                    </select>
+
+                    <select id="admin-status-filter" class="admin-filter-select" onchange="Admin.handleStatusFilterChange()">
+                        <option value="all">📌 Todos os Status</option>
+                        <option value="published">🟢 Publicadas</option>
+                        <option value="draft">🟡 Rascunhos</option>
+                        <option value="featured">⭐ Destaques</option>
+                    </select>
+
                     <select id="admin-sort-select" class="admin-filter-select" onchange="Admin.handleSortChange()">
                         <option value="date-desc">📅 Mais recentes primeiro</option>
                         <option value="date-asc">📅 Mais antigas primeiro</option>
@@ -244,6 +265,32 @@
 
                     <div class="form-row-2col">
                         <div class="form-group">
+                            <label for="category">Categoria da Notícia</label>
+                            <select id="category" class="admin-filter-select" style="width: 100%;">
+                                <option value="Educação Básica">Educação Básica</option>
+                                <option value="Projetos & Inovação">Projetos & Inovação</option>
+                                <option value="Premiações">Premiações</option>
+                                <option value="Alimentação Escolar">Alimentação Escolar</option>
+                                <option value="Eventos">Eventos</option>
+                                <option value="Geral">Geral</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; justify-content: flex-end;">
+                            <div style="display: flex; gap: 20px; padding: 10px 0; align-items: center;">
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; font-weight: 600;">
+                                    <input type="checkbox" id="featured" style="width: auto;">
+                                    <span>⭐ Destaque no Topo</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; font-weight: 600;">
+                                    <input type="checkbox" id="published" checked style="width: auto;">
+                                    <span>🟢 Publicado</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2col">
+                        <div class="form-group">
                             <label for="date">Data (Calendário) *</label>
                             <input type="date" id="date" required onchange="Admin.handleDateChange(this.value)">
                         </div>
@@ -255,12 +302,12 @@
 
                     <div class="form-group">
                         <label for="imageUrl">URL da Imagem de Capa *</label>
-                        <input type="url" id="imageUrl" placeholder="https://..." required>
+                        <input type="url" id="imageUrl" placeholder="https://... ou faça upload abaixo" required>
                         <input type="file" id="image-file-input" accept="image/*" class="hidden">
                         <div id="image-drop-zone" class="drop-zone" title="Clique ou arraste uma foto aqui" style="cursor: pointer;">
-                            🖼️ <strong>Clique para selecionar</strong> ou arraste uma imagem aqui
+                            🖼️ <strong>Clique para escolher</strong> ou arraste uma foto aqui
                             <br>
-                            <small>(Imagens pesadas são otimizadas e comprimidas automaticamente)</small>
+                            <small>(Será otimizada e salva no servidor automaticamente)</small>
                         </div>
                         <img id="image-preview" src="" alt="Prévia da Imagem" class="hidden">
                     </div>
@@ -294,7 +341,7 @@
                 </form>
 
                 <div class="preview-panel">
-                    <h4>Prévia no Carrossel</h4>
+                    <h4>Prévia no Portal</h4>
                     <div id="live-preview-content">
                         <!-- Card renderizado via JS -->
                     </div>
@@ -303,11 +350,42 @@
         </div>
     </div>
 
+    <!-- ================= Modal de Gerenciar Usuários ================= -->
+    <div id="users-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-title-row">
+                <h3 style="margin: 0;">👥 Gerenciar Administradores</h3>
+                <button type="button" class="btn-close-modal" onclick="Admin.closeUsersModal()" title="Fechar">✕</button>
+            </div>
+
+            <!-- Formulário Novo Usuário -->
+            <form id="new-user-form" onsubmit="Admin.handleCreateUser(event)" style="background: var(--background-color); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 12px 0; color: var(--primary-color);">Adicionar Novo Usuário</h4>
+                <div class="form-group">
+                    <label for="new-username" style="font-size: 0.85rem;">Nome de Usuário</label>
+                    <input type="text" id="new-username" placeholder="Ex: editor_noticias" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="new-password-user" style="font-size: 0.85rem;">Senha Inicial (mín. 6 caracteres)</label>
+                    <input type="password" id="new-password-user" placeholder="••••••••" required minlength="6" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-save" id="btn-create-user" style="width: 100%; padding: 8px;">
+                    Criar Usuário
+                </button>
+            </form>
+
+            <h4 style="margin: 0 0 10px 0; color: var(--text-color);">Usuários Ativos</h4>
+            <div id="users-list-container" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
+                <!-- Carregado via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Confirmação de Exclusão -->
     <div id="delete-confirmation-modal" class="modal-overlay">
         <div class="modal-content">
             <h3 style="color: #e74c3c; margin-top: 0;">🗑️ Confirmar Exclusão</h3>
-            <p>Tem certeza que deseja excluir esta notícia permanentemente?</p>
+            <p>Tem certeza que deseja excluir permanentemente?</p>
             <p style="padding: 10px; background: var(--background-color); border-radius: 4px; border-left: 3px solid #e74c3c;">
                 <strong id="news-title-to-delete"></strong>
             </p>

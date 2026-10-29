@@ -6,11 +6,16 @@ const Admin = {
     API_URL: `${API_BASE}/api/news`,
     LOGIN_URL: `${API_BASE}/api/login`,
     PASSWORD_URL: `${API_BASE}/api/change-password`,
+    USERS_URL: `${API_BASE}/api/users`,
+    UPLOAD_URL: `${API_BASE}/api/upload`,
+
     allNews: [],
     filteredNews: [],
     currentPage: 1,
     itemsPerPage: 10,
     currentSort: 'date-desc',
+    currentCategory: 'all',
+    currentStatus: 'all',
 
     init() {
         this.initTheme();
@@ -92,7 +97,7 @@ const Admin = {
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('auth_token', data.token);
-                localStorage.setItem('auth_username', username);
+                localStorage.setItem('auth_username', data.username || username);
 
                 this.showContent();
                 await this.loadNews();
@@ -101,7 +106,13 @@ const Admin = {
                 this.setupCSVImport();
                 this.showToast(`Bem-vindo(a), ${username}!`, 'success');
             } else {
-                this.showToast('Credenciais inválidas. Verifique usuário e senha.', 'error');
+                let msg = 'Credenciais inválidas. Verifique usuário e senha.';
+                try {
+                    const data = await response.json();
+                    if (data && data.message) msg = data.message;
+                } catch (_) {}
+                this.showToast(msg, 'error');
+
                 const card = document.querySelector('.login-card');
                 if (card) {
                     card.classList.add('shake-animation');
@@ -110,7 +121,7 @@ const Admin = {
             }
         } catch (error) {
             console.error('Erro no login:', error);
-            this.showToast('Erro ao conectar com o servidor.', 'error');
+            this.showToast('Erro ao conectar com o servidor na porta 3001.', 'error');
         } finally {
             if (btnLogin) {
                 btnLogin.disabled = false;
@@ -147,11 +158,9 @@ const Admin = {
         if (totalEl) totalEl.textContent = this.allNews.length;
         if (filteredEl) filteredEl.textContent = this.filteredNews.length;
 
-        // Notícias em 2026
         const count2026 = this.allNews.filter(n => (n.date || '').startsWith('2026')).length;
         if (yearEl) yearEl.textContent = count2026;
 
-        // Última data
         if (latestEl) {
             if (this.allNews.length > 0) {
                 const dates = this.allNews
@@ -196,6 +205,22 @@ const Admin = {
         }
     },
 
+    handleCategoryFilterChange() {
+        const select = document.getElementById('admin-category-filter');
+        if (select) {
+            this.currentCategory = select.value;
+            this.applySortAndFilter();
+        }
+    },
+
+    handleStatusFilterChange() {
+        const select = document.getElementById('admin-status-filter');
+        if (select) {
+            this.currentStatus = select.value;
+            this.applySortAndFilter();
+        }
+    },
+
     handlePageSizeChange() {
         const select = document.getElementById('admin-page-size-select');
         if (!select) return;
@@ -213,16 +238,29 @@ const Admin = {
         const searchInput = document.getElementById('admin-search-input');
         const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-        // Filtro
-        if (term) {
-            this.filteredNews = this.allNews.filter(item => 
+        this.filteredNews = this.allNews.filter(item => {
+            // Filtro por termo
+            const matchesSearch = !term || 
                 (item.title || '').toLowerCase().includes(term) || 
                 (item.description || '').toLowerCase().includes(term) ||
-                (item.displayDate || '').toLowerCase().includes(term)
-            );
-        } else {
-            this.filteredNews = [...this.allNews];
-        }
+                (item.displayDate || '').toLowerCase().includes(term);
+
+            // Filtro por categoria
+            const matchesCategory = this.currentCategory === 'all' || 
+                (item.category || 'Educação Básica') === this.currentCategory;
+
+            // Filtro por status
+            let matchesStatus = true;
+            if (this.currentStatus === 'published') {
+                matchesStatus = item.published !== false;
+            } else if (this.currentStatus === 'draft') {
+                matchesStatus = item.published === false;
+            } else if (this.currentStatus === 'featured') {
+                matchesStatus = Boolean(item.featured);
+            }
+
+            return matchesSearch && matchesCategory && matchesStatus;
+        });
 
         // Ordenação
         this.filteredNews.sort((a, b) => {
@@ -283,8 +321,8 @@ const Admin = {
             list.innerHTML = `
                 <div class="empty-state-card">
                     <div class="empty-state-icon">🔍</div>
-                    <div class="empty-state-title">Nenhuma notícia encontrada</div>
-                    <p>Tente ajustar o termo de pesquisa ou adicionar uma nova notícia.</p>
+                    <div class="empty-state-title">Nenhuma notícia encontrada com esses filtros</div>
+                    <p>Tente ajustar a busca ou os seletores de categoria e status.</p>
                 </div>
             `;
             this.renderPaginationControls();
@@ -302,10 +340,35 @@ const Admin = {
 
             const fallbackImg = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400&q=80';
             const instagramBadge = item.instagramLink ? `
-                <a href="${item.instagramLink}" target="_blank" rel="noopener noreferrer" class="badge-instagram" title="Ver post no Instagram">
+                <a href="${item.instagramLink}" target="_blank" rel="noopener noreferrer" class="badge-instagram" title="Ver no Instagram">
                     📷 Instagram
                 </a>
             ` : '';
+
+            const featuredBadge = item.featured ? `
+                <span style="font-size: 0.75rem; background: #f1c40f; color: #000; padding: 2px 8px; border-radius: 12px; font-weight: 700;">
+                    ⭐ Destaque
+                </span>
+            ` : '';
+
+            const isPublished = item.published !== false;
+            const statusBadge = isPublished ? `
+                <span style="font-size: 0.75rem; background: rgba(46,204,113,0.15); color: #27ae60; padding: 2px 8px; border-radius: 12px; font-weight: 600; cursor: pointer;"
+                      onclick="Admin.togglePublish('${item.id}', false)" title="Clique para despublicar (mover para rascunho)">
+                    🟢 Publicada
+                </span>
+            ` : `
+                <span style="font-size: 0.75rem; background: rgba(243,156,18,0.15); color: #e67e22; padding: 2px 8px; border-radius: 12px; font-weight: 600; cursor: pointer;"
+                      onclick="Admin.togglePublish('${item.id}', true)" title="Clique para publicar">
+                    🟡 Rascunho
+                </span>
+            `;
+
+            const categoryBadge = `
+                <span style="font-size: 0.75rem; background: rgba(52,152,219,0.12); color: #2980b9; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                    📂 ${item.category || 'Educação Básica'}
+                </span>
+            `;
 
             card.innerHTML = `
                 <div class="admin-card-thumb-wrapper">
@@ -316,22 +379,28 @@ const Admin = {
                 <div class="admin-card-body">
                     <div class="admin-card-meta">
                         <span class="badge-meta-date">📅 ${item.displayDate || item.date || 'Sem data'}</span>
+                        ${categoryBadge}
+                        ${statusBadge}
+                        ${featuredBadge}
                         ${instagramBadge}
                     </div>
                     <h3 class="admin-card-title">${item.title}</h3>
                     <p class="admin-card-desc">${item.description}</p>
                     <div class="admin-card-links">
                         <a href="${item.link}" target="_blank" rel="noopener noreferrer">
-                            🔗 Acessar matéria original ↗
+                            🔗 Matéria completa ↗
                         </a>
                     </div>
                 </div>
 
                 <div class="admin-card-actions">
-                    <button class="btn-item-action edit" onclick="Admin.editById('${item.id}')">
+                    <button class="btn-item-action edit" onclick="Admin.editById('${item.id}')" title="Editar dados da notícia">
                         ✏️ Editar
                     </button>
-                    <button class="btn-item-action delete" onclick="Admin.showDeleteConfirmation('${item.id}')">
+                    <button class="btn-item-action view" onclick="Admin.duplicateNews('${item.id}')" title="Criar uma cópia desta notícia">
+                        📑 Duplicar
+                    </button>
+                    <button class="btn-item-action delete" onclick="Admin.showDeleteConfirmation('${item.id}')" title="Excluir notícia">
                         🗑️ Excluir
                     </button>
                 </div>
@@ -382,6 +451,61 @@ const Admin = {
         if (toolbar) toolbar.scrollIntoView({ behavior: 'smooth' });
     },
 
+    /* ================= Ações Rápidas (Publicar / Duplicar) ================= */
+    async togglePublish(id, willPublish) {
+        const article = this.allNews.find(n => n.id === id);
+        if (!article) return;
+
+        const token = localStorage.getItem('auth_token');
+        const updated = { ...article, published: willPublish };
+
+        try {
+            const res = await fetch(this.API_URL, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updated)
+            });
+
+            if (res.ok) {
+                this.showToast(willPublish ? 'Notícia publicada!' : 'Notícia alterada para rascunho!', 'success', 2000);
+                await this.loadNews();
+            } else {
+                this.showToast('Erro ao atualizar status da notícia.', 'error');
+            }
+        } catch (_) {
+            this.showToast('Erro de conexão ao alterar status.', 'error');
+        }
+    },
+
+    duplicateNews(id) {
+        const article = this.allNews.find(n => n.id === id);
+        if (!article) return;
+
+        this.openNewsModal(false);
+        document.getElementById('title').value = `[CÓPIA] ${article.title}`;
+        document.getElementById('link').value = article.link || '';
+        document.getElementById('imageUrl').value = article.imageUrl || '';
+        document.getElementById('category').value = article.category || 'Educação Básica';
+        document.getElementById('featured').checked = false; // cópia não nasce destacada
+        document.getElementById('published').checked = false; // cópia nasce como rascunho por segurança
+        document.getElementById('description').value = article.description || '';
+        document.getElementById('readMoreText').value = article.readMoreText || 'Leia Mais';
+        document.getElementById('instagramLink').value = article.instagramLink || '';
+        document.getElementById('altText').value = article.altText || '';
+
+        const imgPreview = document.getElementById('image-preview');
+        if (imgPreview && article.imageUrl) {
+            imgPreview.src = article.imageUrl;
+            imgPreview.classList.add('visible');
+        }
+
+        this.updateLivePreview();
+        this.showToast('Notícia duplicada no formulário. Revise e salve!', 'info', 3000);
+    },
+
     /* ================= Edição / Cadastro ================= */
     editById(id) {
         const article = this.allNews.find(n => n.id === id);
@@ -395,6 +519,9 @@ const Admin = {
         document.getElementById('title').value = article.title || '';
         document.getElementById('link').value = article.link || '';
         document.getElementById('imageUrl').value = article.imageUrl || '';
+        document.getElementById('category').value = article.category || 'Educação Básica';
+        document.getElementById('featured').checked = Boolean(article.featured);
+        document.getElementById('published').checked = article.published !== false;
         document.getElementById('date').value = article.date || '';
         document.getElementById('displayDate').value = article.displayDate || '';
         document.getElementById('description').value = article.description || '';
@@ -439,7 +566,6 @@ const Admin = {
         if (!isEdit) {
             this.resetForm();
             if (title) title.textContent = 'Adicionar Nova Notícia';
-            // Preenche data de hoje como padrão
             const today = new Date().toISOString().slice(0, 10);
             const dateInput = document.getElementById('date');
             if (dateInput) {
@@ -475,6 +601,9 @@ const Admin = {
         const imgPreview = document.getElementById('image-preview');
         if (imgPreview) imgPreview.classList.remove('visible');
 
+        const publishedCheck = document.getElementById('published');
+        if (publishedCheck) publishedCheck.checked = true;
+
         this.updateLivePreview();
     },
 
@@ -498,13 +627,15 @@ const Admin = {
             title: document.getElementById('title').value.trim(),
             link: document.getElementById('link').value.trim(),
             imageUrl: document.getElementById('imageUrl').value.trim(),
+            category: document.getElementById('category').value,
+            featured: document.getElementById('featured').checked,
+            published: document.getElementById('published').checked,
             date: document.getElementById('date').value,
             displayDate: document.getElementById('displayDate').value.trim(),
             description: document.getElementById('description').value.trim(),
             readMoreText: document.getElementById('readMoreText').value.trim() || 'Leia Mais',
             instagramLink: document.getElementById('instagramLink').value.trim(),
-            altText: document.getElementById('altText').value.trim(),
-            published: true
+            altText: document.getElementById('altText').value.trim()
         };
 
         if (!this.isValidURL(article.link)) {
@@ -514,7 +645,7 @@ const Admin = {
         }
 
         if (!this.isValidURL(article.imageUrl)) {
-            this.showToast('A URL da imagem deve ser válida (http:// ou https://).', 'error');
+            this.showToast('A URL da imagem é inválida.', 'error');
             btn.disabled = false;
             return;
         }
@@ -618,6 +749,233 @@ const Admin = {
         }
     },
 
+    /* ================= Upload Físico de Imagens com Compressão ================= */
+    setupDragAndDrop() {
+        const dropZone = document.getElementById('image-drop-zone');
+        const imageUrlInput = document.getElementById('imageUrl');
+        const fileInput = document.getElementById('image-file-input');
+        if (!dropZone || !imageUrlInput) return;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+
+        dropZone.addEventListener('dragover', () => dropZone.classList.add('drag-over'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+        if (fileInput) {
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', async (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    await this.handleImageFile(e.target.files[0], imageUrlInput);
+                    fileInput.value = '';
+                }
+            });
+        }
+
+        dropZone.addEventListener('drop', async (e) => {
+            dropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                await this.handleImageFile(files[0], imageUrlInput);
+            } else {
+                this.showToast('Por favor, envie apenas arquivos de imagem.', 'error');
+            }
+        });
+    },
+
+    async handleImageFile(file, targetInput) {
+        this.showToast('Otimizando imagem para salvar no servidor...', 'info', 1500);
+        try {
+            // 1. Comprime a imagem no canvas do navegador
+            const compressedBase64 = await this.compressImage(file);
+
+            // 2. Tenta fazer upload para o endpoint /api/upload
+            const token = localStorage.getItem('auth_token');
+            const uploadRes = await fetch(this.UPLOAD_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ image: compressedBase64 })
+            });
+
+            if (uploadRes.ok) {
+                const data = await uploadRes.json();
+                targetInput.value = data.url; // Salva o caminho limpo /uploads/...
+                this.showToast('Imagem salva no servidor com sucesso!', 'success', 2500);
+            } else {
+                // Fallback: se falhar o endpoint, salva o base64 comprimido
+                targetInput.value = compressedBase64;
+                this.showToast('Imagem otimizada pronta para salvar!', 'info', 2000);
+            }
+
+            targetInput.dispatchEvent(new Event('input'));
+        } catch (err) {
+            console.error('Erro no processamento da imagem:', err);
+            this.showToast('Não foi possível processar a imagem.', 'error');
+        }
+    },
+
+    compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedDataUrl);
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /* ================= Gerenciador de Usuários ================= */
+    async openUsersModal() {
+        const modal = document.getElementById('users-modal');
+        if (modal) modal.classList.add('visible');
+        await this.loadUsers();
+    },
+
+    closeUsersModal() {
+        const modal = document.getElementById('users-modal');
+        if (modal) modal.classList.remove('visible');
+        const form = document.getElementById('new-user-form');
+        if (form) form.reset();
+    },
+
+    async loadUsers() {
+        const container = document.getElementById('users-list-container');
+        if (!container) return;
+        container.innerHTML = '<p style="font-size: 0.85rem; color: var(--light-text-color);">Carregando usuários...</p>';
+
+        const token = localStorage.getItem('auth_token');
+        try {
+            const res = await fetch(this.USERS_URL, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const users = await res.json();
+                const currentUsername = localStorage.getItem('auth_username') || 'admin';
+
+                if (users.length === 0) {
+                    container.innerHTML = '<p>Nenhum usuário cadastrado.</p>';
+                    return;
+                }
+
+                container.innerHTML = users.map(u => {
+                    const isSelf = u.username === currentUsername;
+                    const deleteBtn = isSelf 
+                        ? '<span style="font-size: 0.75rem; color: var(--light-text-color); font-weight: bold;">(Você)</span>'
+                        : `<button class="btn-item-action delete" style="padding: 4px 8px; font-size: 0.78rem;" onclick="Admin.deleteUser('${u.id}', '${u.username}')">Excluir</button>`;
+
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border-color);">
+                            <span style="font-weight: 600; font-size: 0.9rem;">👤 ${u.username}</span>
+                            <div>${deleteBtn}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = '<p style="color: #e74c3c;">Erro ao carregar lista de usuários.</p>';
+            }
+        } catch (_) {
+            container.innerHTML = '<p style="color: #e74c3c;">Falha na conexão com o servidor.</p>';
+        }
+    },
+
+    async handleCreateUser(e) {
+        e.preventDefault();
+        const username = document.getElementById('new-username').value.trim();
+        const password = document.getElementById('new-password-user').value;
+        const btn = document.getElementById('btn-create-user');
+
+        if (!username || !password || password.length < 6) {
+            this.showToast('Informe usuário e senha com no mínimo 6 caracteres.', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        const token = localStorage.getItem('auth_token');
+
+        try {
+            const res = await fetch(this.USERS_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                this.showToast(`Usuário "${username}" criado com sucesso!`, 'success');
+                document.getElementById('new-user-form').reset();
+                await this.loadUsers();
+            } else {
+                this.showToast(data.message || 'Erro ao criar usuário.', 'error');
+            }
+        } catch (_) {
+            this.showToast('Erro de conexão com o servidor.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    },
+
+    async deleteUser(id, username) {
+        if (!confirm(`Tem certeza que deseja excluir o usuário "${username}"?`)) return;
+
+        const token = localStorage.getItem('auth_token');
+        try {
+            const res = await fetch(this.USERS_URL, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ id })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                this.showToast(`Usuário "${username}" excluído!`, 'success');
+                await this.loadUsers();
+            } else {
+                this.showToast(data.message || 'Erro ao excluir usuário.', 'error');
+            }
+        } catch (_) {
+            this.showToast('Erro de conexão ao excluir usuário.', 'error');
+        }
+    },
+
     /* ================= Senha ================= */
     togglePasswordSection(show) {
         const section = document.getElementById('password-section');
@@ -697,13 +1055,13 @@ const Admin = {
                 body: JSON.stringify({ currentPassword, newPassword })
             });
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
 
             if (response.ok) {
                 this.showToast('Senha alterada com sucesso!', 'success');
                 this.togglePasswordSection(false);
             } else {
-                this.showToast(data.message || 'Erro ao alterar senha', 'error');
+                this.showToast(data.message || `Erro ${response.status}: Falha ao alterar senha`, 'error');
             }
         } catch (error) {
             console.error('Erro ao alterar senha:', error);
@@ -719,20 +1077,21 @@ const Admin = {
             return;
         }
 
-        const headers = ['ID', 'Título', 'Data', 'DataExibicao', 'Link', 'URL_Imagem', 'Descrição', 'Instagram', 'AltText'];
+        const headers = ['ID', 'Título', 'Categoria', 'Data', 'DataExibicao', 'Link', 'URL_Imagem', 'Descrição', 'Destaque', 'Publicado'];
         const csvRows = [headers.join(',')];
 
         newsToExport.forEach(item => {
             const values = [
                 `"${(item.id || '').replace(/"/g, '""')}"`,
                 `"${(item.title || '').replace(/"/g, '""')}"`,
+                `"${(item.category || 'Educação Básica').replace(/"/g, '""')}"`,
                 `"${(item.date || '').replace(/"/g, '""')}"`,
                 `"${(item.displayDate || '').replace(/"/g, '""')}"`,
                 `"${(item.link || '').replace(/"/g, '""')}"`,
                 `"${(item.imageUrl || '').replace(/"/g, '""')}"`,
                 `"${(item.description || '').replace(/"/g, '""')}"`,
-                `"${(item.instagramLink || '').replace(/"/g, '""')}"`,
-                `"${(item.altText || '').replace(/"/g, '""')}"`
+                item.featured ? 'Sim' : 'Não',
+                item.published !== false ? 'Sim' : 'Não'
             ];
             csvRows.push(values.join(','));
         });
@@ -783,15 +1142,15 @@ const Admin = {
 
             const article = {
                 title: columns[1] || 'Sem Título',
-                date: columns[2] || new Date().toISOString().slice(0, 10),
-                displayDate: columns[3] || columns[2] || '',
-                link: columns[4] || '',
-                imageUrl: columns[5] || '',
-                description: columns[6] || '',
-                instagramLink: columns[7] || '',
-                altText: columns[8] || '',
+                category: columns[2] || 'Educação Básica',
+                date: columns[3] || new Date().toISOString().slice(0, 10),
+                displayDate: columns[4] || columns[3] || '',
+                link: columns[5] || '',
+                imageUrl: columns[6] || '',
+                description: columns[7] || '',
                 readMoreText: 'Leia Mais',
-                published: true
+                published: true,
+                featured: false
             };
 
             if (!this.isValidURL(article.link) || !this.isValidURL(article.imageUrl)) continue;
@@ -875,97 +1234,14 @@ const Admin = {
         imagePreview.onerror = () => imagePreview.classList.remove('visible');
     },
 
-    setupDragAndDrop() {
-        const dropZone = document.getElementById('image-drop-zone');
-        const imageUrlInput = document.getElementById('imageUrl');
-        const fileInput = document.getElementById('image-file-input');
-        if (!dropZone || !imageUrlInput) return;
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-        });
-
-        dropZone.addEventListener('dragover', () => dropZone.classList.add('drag-over'));
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-
-        // Clique para selecionar arquivo
-        if (fileInput) {
-            dropZone.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', async (e) => {
-                if (e.target.files && e.target.files[0]) {
-                    await this.handleImageFile(e.target.files[0], imageUrlInput);
-                    fileInput.value = '';
-                }
-            });
-        }
-
-        dropZone.addEventListener('drop', async (e) => {
-            dropZone.classList.remove('drag-over');
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type.startsWith('image/')) {
-                await this.handleImageFile(files[0], imageUrlInput);
-            } else {
-                this.showToast('Por favor, envie apenas arquivos de imagem.', 'error');
-            }
-        });
-    },
-
-    async handleImageFile(file, targetInput) {
-        this.showToast('Otimizando imagem para upload...', 'info', 1500);
-        try {
-            const compressed = await this.compressImage(file);
-            targetInput.value = compressed;
-            targetInput.dispatchEvent(new Event('input'));
-            this.showToast('Imagem otimizada com sucesso!', 'success', 2000);
-        } catch (err) {
-            console.error('Erro na compressão:', err);
-            this.showToast('Não foi possível processar a imagem.', 'error');
-        }
-    },
-
-    compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.8) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-                    if (height > maxHeight) {
-                        width = Math.round((width * maxHeight) / height);
-                        height = maxHeight;
-                    }
-
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                    resolve(compressedDataUrl);
-                };
-                img.onerror = reject;
-                img.src = e.target.result;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    },
-
     setupLivePreview() {
-        const inputs = ['title', 'imageUrl', 'displayDate', 'description', 'readMoreText', 'instagramLink', 'altText'];
+        const inputs = ['title', 'imageUrl', 'displayDate', 'description', 'readMoreText', 'instagramLink', 'altText', 'category', 'featured'];
         inputs.forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.addEventListener('input', () => this.updateLivePreview());
+            if (el) {
+                el.addEventListener('input', () => this.updateLivePreview());
+                el.addEventListener('change', () => this.updateLivePreview());
+            }
         });
     },
 
@@ -976,25 +1252,38 @@ const Admin = {
         const title = (document.getElementById('title')?.value || '').trim() || 'Título da Notícia';
         const imageUrl = (document.getElementById('imageUrl')?.value || '').trim() || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=500&q=80';
         const displayDate = (document.getElementById('displayDate')?.value || '').trim() || 'Data de Exibição';
-        const description = (document.getElementById('description')?.value || '').trim() || 'A prévia da descrição aparecerá aqui em tempo real conforme você preenche o formulário...';
+        const description = (document.getElementById('description')?.value || '').trim() || 'A prévia da descrição aparecerá aqui em tempo real...';
         const readMoreText = (document.getElementById('readMoreText')?.value || '').trim() || 'Leia Mais';
+        const category = document.getElementById('category')?.value || 'Educação Básica';
+        const isFeatured = document.getElementById('featured')?.checked;
         const instagramLink = (document.getElementById('instagramLink')?.value || '').trim();
-        const altText = (document.getElementById('altText')?.value || '').trim() || 'Prévia da notícia';
 
         const instaBadge = instagramLink ? `
-            <span style="font-size: 0.8rem; background: rgba(225,48,108,0.1); color: #e1306c; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+            <span style="font-size: 0.75rem; background: rgba(225,48,108,0.1); color: #e1306c; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
                 📷 Instagram
+            </span>
+        ` : '';
+
+        const starBadge = isFeatured ? `
+            <span style="font-size: 0.75rem; background: #f1c40f; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                ⭐ Destaque
             </span>
         ` : '';
 
         container.innerHTML = `
             <div class="news-card visible" style="opacity: 1; transform: none; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <img src="${imageUrl}" alt="${altText}" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=500&q=80'">
+                <img src="${imageUrl}" alt="Prévia" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=500&q=80'">
                 <div class="news-content">
-                    <div class="card-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <time class="news-date" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-color);">${displayDate}</time>
-                        ${instaBadge}
+                    <div class="card-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
+                        <span style="font-size: 0.75rem; background: rgba(52,152,219,0.15); color: var(--primary-color); padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                            📂 ${category}
+                        </span>
+                        <div>
+                            ${starBadge}
+                            ${instaBadge}
+                        </div>
                     </div>
+                    <time class="news-date" style="font-size: 0.8rem; font-weight: 600; color: var(--light-text-color); margin-bottom: 6px; display: block;">${displayDate}</time>
                     <h3 style="font-size: 1.05rem; margin: 0 0 8px 0; line-height: 1.3;">${title}</h3>
                     <p style="font-size: 0.85rem; color: var(--light-text-color); margin-bottom: 12px; line-height: 1.4;">${description}</p>
                     <div class="card-footer">
@@ -1008,9 +1297,13 @@ const Admin = {
     setupKeyboardShortcuts() {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                const usersModal = document.getElementById('users-modal');
                 const newsModal = document.getElementById('news-modal');
                 const deleteModal = document.getElementById('delete-confirmation-modal');
-                if (deleteModal && deleteModal.classList.contains('visible')) {
+
+                if (usersModal && usersModal.classList.contains('visible')) {
+                    this.closeUsersModal();
+                } else if (deleteModal && deleteModal.classList.contains('visible')) {
                     this.hideDeleteConfirmation();
                 } else if (newsModal && newsModal.classList.contains('visible')) {
                     this.closeNewsModal();
@@ -1038,6 +1331,7 @@ const Admin = {
 
     isValidURL(string) {
         if (!string) return false;
+        if (string.startsWith('/uploads/') || string.startsWith('uploads/')) return true;
         try {
             const url = new URL(string);
             return url.protocol === 'http:' || url.protocol === 'https:' || string.startsWith('data:image/');

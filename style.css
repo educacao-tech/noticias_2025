@@ -1042,3 +1042,211 @@ html[data-theme="dark"] #login-section {
 .pagination-number { width: 38px; height: 38px; display: inline-flex; justify-content: center; align-items: center; border: 1px solid var(--border-color); background: var(--card-bg-color); color: var(--text-color); border-radius: 50%; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; }
 .pagination-number:hover { border-color: var(--primary-color); color: var(--primary-color); }
 .pagination-number.active { background-color: var(--primary-color); color: #fff; border-color: var(--primary-color); box-shadow: 0 3px 8px rgba(var(--primary-color-rgb), 0.35); }
+
+/* ========================================================
+   Filtros de Categoria, Ano, Hero e Ações Sociais
+   ======================================================== */
+.filter-pills-container {
+    max-width: 1440px;
+    margin: 0 auto 25px;
+    padding: 0 var(--spacing-medium);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.category-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.category-pill {
+    background: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 7px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.category-pill:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.category-pill.active {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.35);
+}
+
+.year-select {
+    background: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+
+/* Hero / Notícia em Destaque */
+.hero-container {
+    max-width: 1440px;
+    margin: 0 auto 30px;
+    padding: 0 var(--spacing-medium);
+}
+
+.hero-card {
+    background: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: calc(var(--border-radius) * 1.5);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hero-card:hover {
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+.hero-img-wrapper {
+    position: relative;
+    min-height: 320px;
+    background: rgba(var(--text-color-rgb), 0.05);
+}
+
+.hero-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.hero-content {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hero-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.badge-hero {
+    background: #f1c40f;
+    color: #000;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 3px 9px;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+.hero-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0 0 12px 0;
+    color: var(--text-color);
+}
+
+.hero-title a {
+    color: inherit;
+    text-decoration: none;
+}
+.hero-title a:hover {
+    color: var(--primary-color);
+}
+
+.hero-desc {
+    font-size: 0.95rem;
+    color: var(--light-text-color);
+    line-height: 1.55;
+    margin-bottom: 20px;
+}
+
+.hero-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: auto;
+}
+
+@media (max-width: 900px) {
+    .hero-card {
+        grid-template-columns: 1fr;
+    }
+    .hero-img-wrapper {
+        min-height: 220px;
+    }
+}
+
+/* Card Social Actions & Audio */
+.card-tools-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+}
+
+.card-tool-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--light-text-color);
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.card-tool-btn:hover {
+    color: var(--primary-color);
+    background: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.card-tool-btn.btn-whatsapp:hover {
+    color: #25d366;
+    background: rgba(37, 211, 102, 0.1);
+}
+
+.badge-category {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    background: rgba(var(--primary-color-rgb), 0.1);
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+
+.reading-time {
+    font-size: 0.75rem;
+    color: var(--light-text-color);
+}
