@@ -1,6 +1,7 @@
 :root {
     --primary-color: #3498db;
     --secondary-color: #2980b9;
+    --primary-color-rgb: 52, 152, 219; /* RGB para #3498db */
     /* Um tom de azul mais escuro para contraste */
     --text-color: #333;
     --text-color-rgb: 51, 51, 51;
@@ -19,6 +20,7 @@
 html[data-theme="dark"] {
     --primary-color: #85c1e9;
     /* Azul mais claro para o modo escuro */
+    --primary-color-rgb: 133, 193, 233; /* RGB para #85c1e9 */
     --secondary-color: #3498db;
     /* O primary-color do light mode como secondary no dark */
     --text-color: #e0e0e0;
@@ -140,11 +142,12 @@ h1 {
 
 .news-preview-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: var(--spacing-medium);
     max-width: 1200px;
-    /* Adiciona padding nas laterais para não colar nas bordas da tela */
+    margin: 0 auto var(--spacing-large);
     padding: 0 var(--spacing-medium);
+    justify-content: center;
 }
 
 /* Regra para animar a saída dos cards.
@@ -772,13 +775,49 @@ html[data-theme="dark"] #login-section {
     transition: transform 0.3s ease;
 }
 
-/* Modal maior para o formulário de notícias */
 .modal-content.large {
     max-width: 800px;
     width: 95%;
     padding: var(--spacing-large); /* Garante padding consistente para o modal grande */
     max-height: 90vh;
     overflow-y: auto;
+}
+
+.modal-body-split {
+    display: flex;
+    gap: var(--spacing-large);
+    align-items: flex-start;
+}
+
+.modal-body-split form {
+    flex: 1;
+}
+
+.preview-panel {
+    flex: 0 0 320px;
+    position: sticky;
+    top: 0;
+}
+
+.preview-panel h4 {
+    margin-bottom: 15px;
+    color: var(--light-text-color);
+    text-align: center;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 900px) {
+    .modal-body-split {
+        flex-direction: column;
+    }
+    .preview-panel {
+        flex: none;
+        width: 100%;
+        border-top: 1px solid var(--border-color);
+        padding-top: 20px;
+    }
 }
 
 .modal-overlay.visible .modal-content {
@@ -965,3 +1004,23 @@ html[data-theme="dark"] #login-section {
     font-weight: bold;
     color: var(--light-text-color);
 }
+
+.drop-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-medium);
+    text-align: center;
+    color: var(--light-text-color);
+    margin-top: var(--spacing-small);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.drop-zone.drag-over {
+    border-color: var(--primary-color);
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+.pagination-numbers { display: flex; gap: 8px; align-items: center; }
+.pagination-number { width: 38px; height: 38px; display: inline-flex; justify-content: center; align-items: center; border: 1px solid var(--border-color); background: var(--card-bg-color); color: var(--text-color); border-radius: 50%; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; }
+.pagination-number:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.pagination-number.active { background-color: var(--primary-color); color: #fff; border-color: var(--primary-color); box-shadow: 0 3px 8px rgba(var(--primary-color-rgb), 0.35); }

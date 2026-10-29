@@ -14,8 +14,9 @@ const PORT = 3001; // Porta padrão alterada para 3001
 const SECRET_KEY = process.env.JWT_SECRET || 'chave_temporaria_desenvolvimento'; // Em produção, defina JWT_SECRET no ambiente
 const USERS_FILE = path.join(__dirname, 'users.json');
 
-app.use(cors());
-app.use(bodyParser.json());
+app.use(cors({ origin: true, credentials: true }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Helper to initialize news data (migration logic moved here)
 async function initNewsFile() {

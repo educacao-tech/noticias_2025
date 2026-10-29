@@ -4,165 +4,326 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo - Notícias</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body class="admin-body">
     <div class="admin-container">
-        <!-- Seção de Login -->
-        <div id="login-section">
-            <h2>Login Administrativo</h2>
-            <div class="form-group">
-                <label for="username">Usuário</label>
-                <input type="text" id="username" placeholder="admin" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <div class="password-input-wrapper">
-                    <input type="password" id="password" placeholder="123" required>
-                    <span class="toggle-password-visibility" data-target="password" title="Mostrar/Esconder senha">👁️</span>
+        
+        <!-- ================= Seção de Login ================= -->
+        <div id="login-section" class="login-wrapper">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-icon">📰</div>
+                    <h2>Painel Administrativo</h2>
+                    <p>Gerenciador de Notícias e Comunicação</p>
+                </div>
+
+                <form onsubmit="Admin.login(event)">
+                    <div class="form-group">
+                        <label for="username">Usuário</label>
+                        <input type="text" id="username" placeholder="Digite seu usuário..." required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Senha</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="password" placeholder="Digite sua senha..." required autocomplete="current-password">
+                            <span class="toggle-password-visibility" data-target="password" title="Mostrar/Esconder senha">👁️</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-save" id="btn-login" style="width: 100%; margin-top: 10px;">
+                        Entrar no Painel
+                    </button>
+                </form>
+
+                <div class="login-demo-box">
+                    <div>
+                        <strong>Acesso Rápido:</strong><br>
+                        <code>admin</code> / <code>123</code>
+                    </div>
+                    <button type="button" class="btn-demo-fill" onclick="Admin.fillDemoCredentials()">Preencher</button>
                 </div>
             </div>
-            <button class="btn-save" onclick="Admin.login()">Entrar</button> <br><br>
-            <small>Usuário: admin, Senha: 123 (para testes)</small>
         </div>
 
-        <!-- Seção de Gerenciamento (Escondida inicialmente) -->
+        <!-- ================= Conteúdo Administrativo (Logado) ================= -->
         <div id="admin-content" class="hidden">
-            <header class="admin-header">
-                <h2>Gerenciar Notícias</h2>
-                <div>
-                    <button onclick="Admin.togglePasswordSection(true)">Alterar Senha</button>
-                    <button onclick="Admin.logout()">Sair</button>
+            
+            <!-- Topbar de Navegação -->
+            <header class="admin-topbar">
+                <div class="admin-brand">
+                    <span class="admin-brand-icon">🏛️</span>
+                    <div>
+                        <h1 class="admin-brand-title">Secretaria de Educação</h1>
+                        <p class="admin-brand-subtitle">Painel de Gerenciamento de Notícias</p>
+                    </div>
+                </div>
+
+                <div class="admin-topbar-actions">
+                    <span class="admin-badge-user">
+                        <span>👤</span> <span id="current-username-badge">admin</span>
+                    </span>
+
+                    <button id="theme-toggle" class="btn-admin-nav" title="Alternar Modo Escuro / Claro">
+                        <span id="theme-icon-slot">🌙</span>
+                        <span id="theme-text-slot">Tema</span>
+                    </button>
+
+                    <a href="/" target="_blank" class="btn-admin-nav" title="Abrir carrossel no site público">
+                        <span>🌐</span> Ver Site
+                    </a>
+
+                    <button class="btn-admin-nav" onclick="Admin.togglePasswordSection(true)">
+                        <span>🔑</span> Alterar Senha
+                    </button>
+
+                    <button class="btn-admin-nav danger" onclick="Admin.logout()">
+                        <span>🚪</span> Sair
+                    </button>
                 </div>
             </header>
-            
-            <!-- Seção de Alterar Senha (Escondida por padrão) -->
-            <div id="password-section" class="hidden">
-                <h3>Alterar Minha Senha</h3>
-                <form id="password-form" onsubmit="Admin.changePassword(event)">
-                    <div class="form-group">
-                        <label for="current-password">Senha Atual</label>
-                        <div class="password-input-wrapper">
-                            <input type="password" id="current-password" required>
-                            <span class="toggle-password-visibility" data-target="current-password" title="Mostrar/Esconder senha">👁️</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-password">Nova Senha</label>
-                        <div class="password-input-wrapper">
-                            <input type="password" id="new-password" required minlength="6">
-                            <span class="toggle-password-visibility" data-target="new-password" title="Mostrar/Esconder senha">👁️</span>
-                        </div>
-                        <div class="strength-meter">
-                            <div id="strength-bar"></div>
-                        </div>
-                        <small id="strength-text"></small>
-                    </div>
-                    <div class="form-group">
-                        <label for="confirm-password">Confirmar Nova Senha</label>
-                        <div class="password-input-wrapper">
-                            <input type="password" id="confirm-password" required minlength="6">
-                            <span class="toggle-password-visibility" data-target="confirm-password" title="Mostrar/Esconder senha">👁️</span>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-save">Salvar Nova Senha</button>
-                    <button type="button" onclick="Admin.togglePasswordSection(false)" class="btn-cancel">Cancelar</button>
-                </form>
-            </div>
 
-            <!-- Modal de Cadastro/Edição de Notícias -->
-            <div id="news-modal" class="modal-overlay">
-                <div class="modal-content large">
-                    <h3 id="modal-title">Adicionar Notícia</h3>
-                    <form id="news-form" onsubmit="Admin.handleSubmit(event)">
-                        <input type="hidden" id="edit-mode" value="false">
-                        <input type="hidden" id="news-id" value="">
+            <!-- Seção de Alterar Senha (Expansível) -->
+            <div id="password-section" class="hidden" style="margin-bottom: 25px;">
+                <div class="admin-toolbar-card">
+                    <div class="modal-title-row">
+                        <h3>Alterar Minha Senha</h3>
+                        <button type="button" class="btn-close-modal" onclick="Admin.togglePasswordSection(false)" title="Fechar">✕</button>
+                    </div>
+                    <form id="password-form" onsubmit="Admin.changePassword(event)">
                         <div class="form-group">
-                            <label for="title">Título</label>
-                            <input type="text" id="title" required>
+                            <label for="current-password">Senha Atual</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="current-password" required autocomplete="current-password">
+                                <span class="toggle-password-visibility" data-target="current-password" title="Mostrar/Esconder">👁️</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="link">Link da Notícia (Identificador Único)</label>
-                            <input type="url" id="link" required>
+                        <div class="form-row-2col">
+                            <div class="form-group">
+                                <label for="new-password">Nova Senha (mín. 6 caracteres)</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="new-password" required minlength="6" autocomplete="new-password">
+                                    <span class="toggle-password-visibility" data-target="new-password" title="Mostrar/Esconder">👁️</span>
+                                </div>
+                                <div class="strength-meter">
+                                    <div id="strength-bar"></div>
+                                </div>
+                                <small id="strength-text"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Confirmar Nova Senha</label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="confirm-password" required minlength="6" autocomplete="new-password">
+                                    <span class="toggle-password-visibility" data-target="confirm-password" title="Mostrar/Esconder">👁️</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="imageUrl">URL da Imagem</label>
-                            <input type="url" id="imageUrl" required>
-                            <img id="image-preview" src="" alt="Prévia da Imagem">
-                        </div>
-                        <div class="form-group">
-                            <label for="date">Data (AAAA-MM-DD)</label>
-                            <input type="date" id="date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="displayDate">Data Exibição (Ex: 09 de Junho de 2026)</label>
-                            <input type="text" id="displayDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Descrição</label>
-                            <textarea id="description" rows="4" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="readMoreText">Texto do Botão (Ex: Leia Mais)</label>
-                            <input type="text" id="readMoreText" value="Leia Mais">
-                        </div>
-                        <div class="form-group">
-                            <label for="instagramLink">Link Instagram (Opcional)</label>
-                            <input type="url" id="instagramLink">
-                        </div>
-                        <div class="form-group">
-                            <label for="altText">Texto Alternativo (Acessibilidade)</label>
-                            <input type="text" id="altText">
-                        </div>
-                        <div class="modal-buttons">
-                            <button type="button" class="btn-cancel" onclick="Admin.closeNewsModal()">Cancelar</button>
-                            <button type="submit" class="btn-save" id="btn-submit">Salvar Notícia</button>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button type="submit" class="btn-save">Salvar Nova Senha</button>
+                            <button type="button" onclick="Admin.togglePasswordSection(false)" class="btn-admin-nav">Cancelar</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <div class="admin-list">
-                <header class="admin-list-header">
-                    <h3>Notícias Atuais</h3>
-                    <div>
-                        <button class="btn-save" onclick="Admin.openNewsModal()">Nova Notícia</button>
-                        <button class="btn-save btn-secondary" onclick="Admin.triggerCSVImport()">Importar CSV</button>
-                        <button class="btn-save btn-secondary" onclick="Admin.exportNewsToCSV()">Exportar CSV</button>
+            <!-- KPIs / Resumo Estatístico -->
+            <section class="admin-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📰</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-total-news">--</div>
+                        <div class="stat-label">Total de Notícias</div>
                     </div>
-                </header>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">📅</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-year-news">--</div>
+                        <div class="stat-label">Notícias em 2026</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">🕒</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-latest-date" style="font-size: 1.15rem;">--</div>
+                        <div class="stat-label">Última Publicação</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">🔍</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-filtered-news">--</div>
+                        <div class="stat-label">Itens Filtrados</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Barra de Ações & Filtros -->
+            <section class="admin-toolbar-card">
+                <div class="admin-toolbar-top">
+                    <h2 class="admin-toolbar-title">
+                        <span>📋</span> Notícias Cadastradas
+                    </h2>
+                    <div class="admin-toolbar-actions">
+                        <button class="btn-primary-action" onclick="Admin.openNewsModal()">
+                            <span>➕</span> Nova Notícia
+                        </button>
+                        <button class="btn-secondary-action" onclick="Admin.triggerCSVImport()">
+                            <span>📥</span> Importar CSV
+                        </button>
+                        <button class="btn-secondary-action" onclick="Admin.exportNewsToCSV()">
+                            <span>📤</span> Exportar CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input oculto para CSV -->
                 <input type="file" id="csv-import-input" accept=".csv" class="hidden">
-                <div class="form-group">
-                    <input type="search" id="admin-search-input" placeholder="Filtrar por título ou descrição...">
+
+                <!-- Linha de Busca e Ordenação -->
+                <div class="admin-search-row">
+                    <div class="admin-search-box">
+                        <span class="search-icon-decor">🔍</span>
+                        <input type="search" id="admin-search-input" placeholder="Buscar por título ou descrição..." autocomplete="off">
+                        <button type="button" id="btn-clear-search" class="btn-clear-search" onclick="Admin.clearSearch()" title="Limpar busca">✕</button>
+                    </div>
+
+                    <select id="admin-sort-select" class="admin-filter-select" onchange="Admin.handleSortChange()">
+                        <option value="date-desc">📅 Mais recentes primeiro</option>
+                        <option value="date-asc">📅 Mais antigas primeiro</option>
+                        <option value="title-asc">🔤 Título (A-Z)</option>
+                        <option value="title-desc">🔤 Título (Z-A)</option>
+                    </select>
+
+                    <select id="admin-page-size-select" class="admin-filter-select" onchange="Admin.handlePageSizeChange()">
+                        <option value="5">Exibir 5 por página</option>
+                        <option value="10" selected>Exibir 10 por página</option>
+                        <option value="20">Exibir 20 por página</option>
+                        <option value="all">Exibir Todas</option>
+                    </select>
                 </div>
-                <div id="admin-news-items"> 
-                    <!-- Lista preenchida via JS -->
-                </div>
-                <div id="pagination-controls" class="pagination-container"></div>
+            </section>
+
+            <!-- Lista de Notícias -->
+            <div id="admin-news-items">
+                <!-- Renderizado via JavaScript -->
             </div>
+
+            <!-- Controles de Paginação -->
+            <div id="pagination-controls" class="pagination-container"></div>
+
         </div>
     </div>
 
-    <!-- Contêiner para as notificações Toast -->
-    <div id="toast-container" class="toast-container"></div>
+    <!-- ================= Modal de Cadastro/Edição de Notícias ================= -->
+    <div id="news-modal" class="modal-overlay">
+        <div class="modal-content large">
+            <div class="modal-title-row">
+                <h3 id="modal-title">Adicionar Nova Notícia</h3>
+                <button type="button" class="btn-close-modal" onclick="Admin.closeNewsModal()" title="Fechar Modal">✕</button>
+            </div>
+            
+            <div class="modal-body-split">
+                <form id="news-form" onsubmit="Admin.handleSubmit(event)">
+                    <input type="hidden" id="edit-mode" value="false">
+                    <input type="hidden" id="news-id" value="">
+
+                    <div class="form-group">
+                        <label for="title">Título da Notícia *</label>
+                        <input type="text" id="title" placeholder="Ex: Batatais avança no Índice de Educação..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="link">Link da Matéria Completa *</label>
+                        <input type="url" id="link" placeholder="https://www.batatais.sp.gov.br/noticias/..." required>
+                    </div>
+
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label for="date">Data (Calendário) *</label>
+                            <input type="date" id="date" required onchange="Admin.handleDateChange(this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label for="displayDate">Data Formatada de Exibição *</label>
+                            <input type="text" id="displayDate" placeholder="Ex: 28 de Maio de 2026" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="imageUrl">URL da Imagem de Capa *</label>
+                        <input type="url" id="imageUrl" placeholder="https://..." required>
+                        <div id="image-drop-zone" class="drop-zone">
+                            🖼️ Arraste e solte uma imagem aqui ou cole a URL acima
+                            <br>
+                            <small>(Formatos recomendados: JPG, PNG, WEBP)</small>
+                        </div>
+                        <img id="image-preview" src="" alt="Prévia da Imagem" class="hidden">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Resumo / Descrição da Notícia *</label>
+                        <textarea id="description" rows="4" placeholder="Breve introdução que aparecerá no carrossel..." required></textarea>
+                    </div>
+
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label for="readMoreText">Texto do Botão</label>
+                            <input type="text" id="readMoreText" value="Leia Mais">
+                        </div>
+                        <div class="form-group">
+                            <label for="instagramLink">Link Instagram (Opcional)</label>
+                            <input type="url" id="instagramLink" placeholder="https://www.instagram.com/p/...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="altText">Texto Alternativo para Acessibilidade (Alt Text)</label>
+                        <input type="text" id="altText" placeholder="Descrição da imagem para leitores de tela...">
+                    </div>
+
+                    <div class="modal-buttons" style="margin-top: 25px;">
+                        <button type="button" class="btn-cancel" onclick="Admin.confirmClearForm()">Limpar Campos</button>
+                        <button type="button" class="btn-cancel" onclick="Admin.closeNewsModal()">Cancelar</button>
+                        <button type="submit" class="btn-save" id="btn-submit">Salvar Notícia</button>
+                    </div>
+                </form>
+
+                <div class="preview-panel">
+                    <h4>Prévia no Carrossel</h4>
+                    <div id="live-preview-content">
+                        <!-- Card renderizado via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal de Confirmação de Exclusão -->
     <div id="delete-confirmation-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Confirmar Exclusão</h3>
-            <p>Tem certeza que deseja excluir a notícia: <br><strong id="news-title-to-delete"></strong>?</p>
+            <h3 style="color: #e74c3c; margin-top: 0;">🗑️ Confirmar Exclusão</h3>
+            <p>Tem certeza que deseja excluir esta notícia permanentemente?</p>
+            <p style="padding: 10px; background: var(--background-color); border-radius: 4px; border-left: 3px solid #e74c3c;">
+                <strong id="news-title-to-delete"></strong>
+            </p>
             <div class="modal-buttons">
                 <button id="cancel-delete-btn" class="btn-cancel">Cancelar</button>
-                <button id="confirm-delete-btn" class="btn-confirm">Excluir</button>
+                <button id="confirm-delete-btn" class="btn-confirm">Sim, Excluir</button>
             </div>
         </div>
     </div>
 
-    <!-- Overlay de Carregamento (Spinner) -->
+    <!-- Spinner Overlay -->
     <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
     </div>
+
+    <!-- Toasts de Notificação -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="admin.js"></script>
 </body>

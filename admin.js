@@ -1,16 +1,24 @@
+const API_BASE = (window.location.protocol === 'http:' || window.location.protocol === 'https:') && window.location.port === '3001'
+    ? ''
+    : 'http://localhost:3001';
+
 const Admin = {
-    API_URL: '/api/news',
-    LOGIN_URL: '/api/login',
-    PASSWORD_URL: '/api/change-password',
+    API_URL: `${API_BASE}/api/news`,
+    LOGIN_URL: `${API_BASE}/api/login`,
+    PASSWORD_URL: `${API_BASE}/api/change-password`,
     allNews: [],
     filteredNews: [],
     currentPage: 1,
-    itemsPerPage: 5, // Define quantas notícias aparecem por página
+    itemsPerPage: 10,
+    currentSort: 'date-desc',
 
     init() {
-        // Configurações que devem funcionar mesmo na tela de login
+        this.initTheme();
         this.setupPasswordVisibilityToggles();
         this.setupImagePreview();
+        this.setupLivePreview();
+        this.setupDragAndDrop();
+        this.setupKeyboardShortcuts();
 
         const token = localStorage.getItem('auth_token');
         if (token) {
@@ -22,16 +30,56 @@ const Admin = {
         }
     },
 
-    async login() {
+    /* ================= Tema Claro / Escuro ================= */
+    initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        this.applyTheme(savedTheme);
+
+        const themeBtn = document.getElementById('theme-toggle');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', () => {
+                const current = document.documentElement.getAttribute('data-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                this.applyTheme(next);
+            });
+        }
+    },
+
+    applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+
+        const iconSlot = document.getElementById('theme-icon-slot');
+        const textSlot = document.getElementById('theme-text-slot');
+        if (iconSlot) iconSlot.textContent = theme === 'dark' ? '☀️' : '🌙';
+        if (textSlot) textSlot.textContent = theme === 'dark' ? 'Claro' : 'Escuro';
+    },
+
+    /* ================= Autenticação ================= */
+    fillDemoCredentials() {
+        const u = document.getElementById('username');
+        const p = document.getElementById('password');
+        if (u) u.value = 'admin';
+        if (p) p.value = '123';
+        this.showToast('Credenciais preenchidas!', 'info', 2000);
+    },
+
+    async login(event) {
+        if (event) event.preventDefault();
+
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
-
-        const loginSection = document.getElementById('login-section');
-        loginSection.classList.remove('shake-animation');
+        const btnLogin = document.getElementById('btn-login');
 
         if (!username || !password) {
             this.showToast('Por favor, preencha todos os campos.', 'error');
             return;
+        }
+
+        if (btnLogin) {
+            btnLogin.disabled = true;
+            btnLogin.textContent = 'Acessando...';
         }
 
         try {
@@ -44,71 +92,544 @@ const Admin = {
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('auth_token', data.token);
+                localStorage.setItem('auth_username', username);
+
                 this.showContent();
-                this.loadNews();
-                // Inicializa os módulos que dependem de estar logado
+                await this.loadNews();
                 this.setupPasswordStrength();
                 this.setupSearch();
                 this.setupCSVImport();
+                this.showToast(`Bem-vindo(a), ${username}!`, 'success');
             } else {
-                this.showToast('Credenciais inválidas', 'error');
-                loginSection.classList.add('shake-animation');
-                loginSection.addEventListener('animationend', () => loginSection.classList.remove('shake-animation'), { once: true });
+                this.showToast('Credenciais inválidas. Verifique usuário e senha.', 'error');
+                const card = document.querySelector('.login-card');
+                if (card) {
+                    card.classList.add('shake-animation');
+                    setTimeout(() => card.classList.remove('shake-animation'), 600);
+                }
             }
         } catch (error) {
             console.error('Erro no login:', error);
-            this.showToast('Erro ao conectar com o servidor', 'error');
+            this.showToast('Erro ao conectar com o servidor.', 'error');
+        } finally {
+            if (btnLogin) {
+                btnLogin.disabled = false;
+                btnLogin.textContent = 'Entrar no Painel';
+            }
         }
     },
 
     logout() {
         localStorage.removeItem('auth_token');
-        location.reload();
-    },
-
-    setupPasswordVisibilityToggles() {
-        document.querySelectorAll('.toggle-password-visibility').forEach(toggle => {
-            toggle.addEventListener('click', () => {
-                const targetId = toggle.dataset.target;
-                const passwordInput = document.getElementById(targetId);
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    toggle.textContent = '🙈'; // Ícone de olho fechado
-                } else {
-                    passwordInput.type = 'password';
-                    toggle.textContent = '👁️'; // Ícone de olho aberto
-                }
-            });
-        });
-    },
-
-    setupImagePreview() {
-        const imageUrlInput = document.getElementById('imageUrl');
-        const imagePreview = document.getElementById('image-preview');
-
-        imageUrlInput.addEventListener('input', () => {
-            const url = imageUrlInput.value.trim();
-            if (this.isValidURL(url)) {
-                imagePreview.src = url;
-                imagePreview.classList.add('visible');
-            } else {
-                imagePreview.classList.remove('visible');
-            }
-        });
-
-        imagePreview.onerror = () => imagePreview.classList.remove('visible');
+        localStorage.removeItem('auth_username');
+        this.showToast('Sessão encerrada.', 'info', 1500);
+        setTimeout(() => location.reload(), 500);
     },
 
     showContent() {
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('admin-content').classList.remove('hidden');
+        const loginSec = document.getElementById('login-section');
+        const adminContent = document.getElementById('admin-content');
+        if (loginSec) loginSec.classList.add('hidden');
+        if (adminContent) adminContent.classList.remove('hidden');
+
+        const savedUser = localStorage.getItem('auth_username') || 'admin';
+        const badge = document.getElementById('current-username-badge');
+        if (badge) badge.textContent = savedUser;
     },
 
+    /* ================= Estatísticas / KPIs ================= */
+    updateStats() {
+        const totalEl = document.getElementById('stat-total-news');
+        const yearEl = document.getElementById('stat-year-news');
+        const latestEl = document.getElementById('stat-latest-date');
+        const filteredEl = document.getElementById('stat-filtered-news');
+
+        if (totalEl) totalEl.textContent = this.allNews.length;
+        if (filteredEl) filteredEl.textContent = this.filteredNews.length;
+
+        // Notícias em 2026
+        const count2026 = this.allNews.filter(n => (n.date || '').startsWith('2026')).length;
+        if (yearEl) yearEl.textContent = count2026;
+
+        // Última data
+        if (latestEl) {
+            if (this.allNews.length > 0) {
+                const dates = this.allNews
+                    .map(n => n.date)
+                    .filter(Boolean)
+                    .sort()
+                    .reverse();
+                if (dates.length > 0) {
+                    const [y, m, d] = dates[0].split('-');
+                    latestEl.textContent = `${d}/${m}/${y}`;
+                } else {
+                    latestEl.textContent = 'Sem data';
+                }
+            } else {
+                latestEl.textContent = '--';
+            }
+        }
+    },
+
+    /* ================= Carregamento e Ordenação ================= */
+    async loadNews() {
+        const loading = document.getElementById('loading-overlay');
+        if (loading) loading.classList.add('visible');
+
+        try {
+            const response = await fetch(this.API_URL);
+            this.allNews = await response.json();
+            this.applySortAndFilter();
+        } catch (error) {
+            console.error('Erro ao carregar notícias:', error);
+            this.showToast('Falha ao carregar lista de notícias', 'error');
+        } finally {
+            if (loading) loading.classList.remove('visible');
+        }
+    },
+
+    handleSortChange() {
+        const select = document.getElementById('admin-sort-select');
+        if (select) {
+            this.currentSort = select.value;
+            this.applySortAndFilter();
+        }
+    },
+
+    handlePageSizeChange() {
+        const select = document.getElementById('admin-page-size-select');
+        if (!select) return;
+
+        if (select.value === 'all') {
+            this.itemsPerPage = Math.max(this.filteredNews.length, 1);
+        } else {
+            this.itemsPerPage = parseInt(select.value, 10) || 10;
+        }
+        this.currentPage = 1;
+        this.renderNewsList();
+    },
+
+    applySortAndFilter() {
+        const searchInput = document.getElementById('admin-search-input');
+        const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        // Filtro
+        if (term) {
+            this.filteredNews = this.allNews.filter(item => 
+                (item.title || '').toLowerCase().includes(term) || 
+                (item.description || '').toLowerCase().includes(term) ||
+                (item.displayDate || '').toLowerCase().includes(term)
+            );
+        } else {
+            this.filteredNews = [...this.allNews];
+        }
+
+        // Ordenação
+        this.filteredNews.sort((a, b) => {
+            const dateA = a.date || '';
+            const dateB = b.date || '';
+            const titleA = (a.title || '').toLowerCase();
+            const titleB = (b.title || '').toLowerCase();
+
+            switch (this.currentSort) {
+                case 'date-asc':
+                    return dateA.localeCompare(dateB);
+                case 'title-asc':
+                    return titleA.localeCompare(titleB);
+                case 'title-desc':
+                    return titleB.localeCompare(titleA);
+                case 'date-desc':
+                default:
+                    return dateB.localeCompare(dateA);
+            }
+        });
+
+        this.currentPage = 1;
+        this.updateStats();
+        this.renderNewsList();
+    },
+
+    setupSearch() {
+        const searchInput = document.getElementById('admin-search-input');
+        const clearBtn = document.getElementById('btn-clear-search');
+        if (!searchInput) return;
+
+        searchInput.addEventListener('input', () => {
+            if (clearBtn) {
+                clearBtn.classList.toggle('visible', searchInput.value.length > 0);
+            }
+            this.applySortAndFilter();
+        });
+    },
+
+    clearSearch() {
+        const searchInput = document.getElementById('admin-search-input');
+        const clearBtn = document.getElementById('btn-clear-search');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+        if (clearBtn) clearBtn.classList.remove('visible');
+        this.applySortAndFilter();
+    },
+
+    /* ================= Renderização da Lista ================= */
+    renderNewsList() {
+        const list = document.getElementById('admin-news-items');
+        if (!list) return;
+        list.innerHTML = '';
+
+        if (this.filteredNews.length === 0) {
+            list.innerHTML = `
+                <div class="empty-state-card">
+                    <div class="empty-state-icon">🔍</div>
+                    <div class="empty-state-title">Nenhuma notícia encontrada</div>
+                    <p>Tente ajustar o termo de pesquisa ou adicionar uma nova notícia.</p>
+                </div>
+            `;
+            this.renderPaginationControls();
+            return;
+        }
+
+        const start = (this.currentPage - 1) * this.itemsPerPage;
+        const end = start + this.itemsPerPage;
+        const pageItems = this.filteredNews.slice(start, end);
+
+        pageItems.forEach(item => {
+            const card = document.createElement('article');
+            card.className = 'admin-card-item';
+            card.dataset.newsId = item.id;
+
+            const fallbackImg = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400&q=80';
+            const instagramBadge = item.instagramLink ? `
+                <a href="${item.instagramLink}" target="_blank" rel="noopener noreferrer" class="badge-instagram" title="Ver post no Instagram">
+                    📷 Instagram
+                </a>
+            ` : '';
+
+            card.innerHTML = `
+                <div class="admin-card-thumb-wrapper">
+                    <img src="${item.imageUrl || fallbackImg}" alt="${item.altText || item.title}" 
+                         onerror="this.src='${fallbackImg}'">
+                </div>
+                
+                <div class="admin-card-body">
+                    <div class="admin-card-meta">
+                        <span class="badge-meta-date">📅 ${item.displayDate || item.date || 'Sem data'}</span>
+                        ${instagramBadge}
+                    </div>
+                    <h3 class="admin-card-title">${item.title}</h3>
+                    <p class="admin-card-desc">${item.description}</p>
+                    <div class="admin-card-links">
+                        <a href="${item.link}" target="_blank" rel="noopener noreferrer">
+                            🔗 Acessar matéria original ↗
+                        </a>
+                    </div>
+                </div>
+
+                <div class="admin-card-actions">
+                    <button class="btn-item-action edit" onclick="Admin.editById('${item.id}')">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn-item-action delete" onclick="Admin.showDeleteConfirmation('${item.id}')">
+                        🗑️ Excluir
+                    </button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+
+        this.renderPaginationControls();
+    },
+
+    renderPaginationControls() {
+        const container = document.getElementById('pagination-controls');
+        if (!container) return;
+
+        const totalPages = Math.ceil(this.filteredNews.length / this.itemsPerPage);
+
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = `
+            <button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
+                onclick="Admin.changePage(${this.currentPage - 1})">◀ Anterior</button>
+            <div class="pagination-numbers">
+        `;
+
+        for (let i = 1; i <= totalPages; i++) {
+            html += `
+                <button class="pagination-number ${i === this.currentPage ? 'active' : ''}" 
+                    onclick="Admin.changePage(${i})">${i}</button>
+            `;
+        }
+
+        html += `
+            </div>
+            <button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} 
+                onclick="Admin.changePage(${this.currentPage + 1})">Próxima ▶</button>
+        `;
+
+        container.innerHTML = html;
+    },
+
+    changePage(page) {
+        this.currentPage = page;
+        this.renderNewsList();
+        const toolbar = document.querySelector('.admin-toolbar-card');
+        if (toolbar) toolbar.scrollIntoView({ behavior: 'smooth' });
+    },
+
+    /* ================= Edição / Cadastro ================= */
+    editById(id) {
+        const article = this.allNews.find(n => n.id === id);
+        if (!article) {
+            this.showToast('Notícia não encontrada para edição', 'error');
+            return;
+        }
+
+        this.openNewsModal(true);
+        document.getElementById('news-id').value = article.id || '';
+        document.getElementById('title').value = article.title || '';
+        document.getElementById('link').value = article.link || '';
+        document.getElementById('imageUrl').value = article.imageUrl || '';
+        document.getElementById('date').value = article.date || '';
+        document.getElementById('displayDate').value = article.displayDate || '';
+        document.getElementById('description').value = article.description || '';
+        document.getElementById('readMoreText').value = article.readMoreText || 'Leia Mais';
+        document.getElementById('instagramLink').value = article.instagramLink || '';
+        document.getElementById('altText').value = article.altText || '';
+
+        document.getElementById('edit-mode').value = 'true';
+        document.getElementById('btn-submit').textContent = 'Atualizar Notícia';
+
+        const imgPreview = document.getElementById('image-preview');
+        if (imgPreview && article.imageUrl) {
+            imgPreview.src = article.imageUrl;
+            imgPreview.classList.add('visible');
+        }
+        this.updateLivePreview();
+    },
+
+    handleDateChange(dateString) {
+        if (!dateString) return;
+        const [year, month, day] = dateString.split('-');
+        if (!year || !month || !day) return;
+
+        const months = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        const monthIndex = parseInt(month, 10) - 1;
+        const monthName = months[monthIndex] || month;
+
+        const formatted = `${day} de ${monthName} de ${year}`;
+        const displayDateInput = document.getElementById('displayDate');
+        if (displayDateInput) {
+            displayDateInput.value = formatted;
+            this.updateLivePreview();
+        }
+    },
+
+    openNewsModal(isEdit = false) {
+        const modal = document.getElementById('news-modal');
+        const title = document.getElementById('modal-title');
+        if (!isEdit) {
+            this.resetForm();
+            if (title) title.textContent = 'Adicionar Nova Notícia';
+            // Preenche data de hoje como padrão
+            const today = new Date().toISOString().slice(0, 10);
+            const dateInput = document.getElementById('date');
+            if (dateInput) {
+                dateInput.value = today;
+                this.handleDateChange(today);
+            }
+        } else {
+            if (title) title.textContent = 'Editar Notícia';
+        }
+        if (modal) modal.classList.add('visible');
+        this.updateLivePreview();
+    },
+
+    closeNewsModal() {
+        const modal = document.getElementById('news-modal');
+        if (modal) modal.classList.remove('visible');
+        this.resetForm();
+    },
+
+    resetForm() {
+        const form = document.getElementById('news-form');
+        if (form) form.reset();
+
+        const idField = document.getElementById('news-id');
+        if (idField) idField.value = '';
+
+        const editModeField = document.getElementById('edit-mode');
+        if (editModeField) editModeField.value = 'false';
+
+        const btnSubmit = document.getElementById('btn-submit');
+        if (btnSubmit) btnSubmit.textContent = 'Salvar Notícia';
+
+        const imgPreview = document.getElementById('image-preview');
+        if (imgPreview) imgPreview.classList.remove('visible');
+
+        this.updateLivePreview();
+    },
+
+    confirmClearForm() {
+        if (confirm('Tem certeza que deseja limpar todos os campos deste formulário?')) {
+            this.resetForm();
+            this.showToast('Campos limpos!', 'info');
+        }
+    },
+
+    async handleSubmit(event) {
+        event.preventDefault();
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true;
+
+        const token = localStorage.getItem('auth_token');
+        const isEdit = document.getElementById('edit-mode').value === 'true';
+
+        const article = {
+            id: document.getElementById('news-id').value,
+            title: document.getElementById('title').value.trim(),
+            link: document.getElementById('link').value.trim(),
+            imageUrl: document.getElementById('imageUrl').value.trim(),
+            date: document.getElementById('date').value,
+            displayDate: document.getElementById('displayDate').value.trim(),
+            description: document.getElementById('description').value.trim(),
+            readMoreText: document.getElementById('readMoreText').value.trim() || 'Leia Mais',
+            instagramLink: document.getElementById('instagramLink').value.trim(),
+            altText: document.getElementById('altText').value.trim(),
+            published: true
+        };
+
+        if (!this.isValidURL(article.link)) {
+            this.showToast('O link da matéria deve ser uma URL válida (http:// ou https://).', 'error');
+            btn.disabled = false;
+            return;
+        }
+
+        if (!this.isValidURL(article.imageUrl)) {
+            this.showToast('A URL da imagem deve ser válida (http:// ou https://).', 'error');
+            btn.disabled = false;
+            return;
+        }
+
+        if (article.instagramLink && !this.isValidURL(article.instagramLink)) {
+            this.showToast('O link do Instagram é inválido.', 'error');
+            btn.disabled = false;
+            return;
+        }
+
+        try {
+            const response = await fetch(this.API_URL, {
+                method: isEdit ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(article)
+            });
+
+            if (response.ok) {
+                this.showToast(isEdit ? 'Notícia atualizada com sucesso!' : 'Notícia adicionada com sucesso!', 'success');
+                this.closeNewsModal();
+                await this.loadNews();
+            } else {
+                let errorMsg = 'Erro ao salvar a notícia no servidor.';
+                try {
+                    const data = await response.json();
+                    if (data && data.message) errorMsg = data.message;
+                } catch (_) {
+                    errorMsg = `Erro ${response.status}: ${response.statusText || 'Falha ao processar.'}`;
+                }
+
+                if (response.status === 401 || response.status === 403) {
+                    errorMsg = 'Sua sessão expirou ou você não está autenticado. Faça login novamente.';
+                    localStorage.removeItem('auth_token');
+                    setTimeout(() => location.reload(), 2500);
+                }
+
+                this.showToast(errorMsg, 'error');
+            }
+        } catch (e) {
+            console.error('Erro ao salvar notícia:', e);
+            this.showToast('Erro de conexão: certifique-se de que o backend está ativo na porta 3001.', 'error', 5000);
+        } finally {
+            btn.disabled = false;
+        }
+    },
+
+    /* ================= Exclusão ================= */
+    showDeleteConfirmation(id) {
+        const article = this.allNews.find(n => n.id === id);
+        if (!article) return;
+
+        const modal = document.getElementById('delete-confirmation-modal');
+        const newsTitleSpan = document.getElementById('news-title-to-delete');
+        if (newsTitleSpan) newsTitleSpan.textContent = article.title;
+        if (modal) modal.classList.add('visible');
+
+        const confirmBtn = document.getElementById('confirm-delete-btn');
+        const cancelBtn = document.getElementById('cancel-delete-btn');
+
+        confirmBtn.onclick = async () => {
+            confirmBtn.disabled = true;
+            await this.confirmDelete(id);
+            confirmBtn.disabled = false;
+            this.hideDeleteConfirmation();
+        };
+
+        cancelBtn.onclick = () => this.hideDeleteConfirmation();
+    },
+
+    hideDeleteConfirmation() {
+        const modal = document.getElementById('delete-confirmation-modal');
+        if (modal) modal.classList.remove('visible');
+    },
+
+    async confirmDelete(id) {
+        const token = localStorage.getItem('auth_token');
+
+        try {
+            const response = await fetch(this.API_URL, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ id })
+            });
+
+            if (response.ok) {
+                this.showToast('Notícia excluída com sucesso!', 'success');
+                await this.loadNews();
+            } else {
+                const data = await response.json();
+                this.showToast(data.message || 'Erro ao excluir notícia.', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('Erro ao comunicar com o servidor.', 'error');
+        }
+    },
+
+    /* ================= Senha ================= */
     togglePasswordSection(show) {
         const section = document.getElementById('password-section');
+        if (!section) return;
         section.classList.toggle('hidden', !show);
-        if (!show) document.getElementById('password-form').reset();
-        this.resetStrengthMeter();
+        if (!show) {
+            const form = document.getElementById('password-form');
+            if (form) form.reset();
+            this.resetStrengthMeter();
+        } else {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
     },
 
     setupPasswordStrength() {
@@ -116,7 +637,7 @@ const Admin = {
         const strengthBar = document.getElementById('strength-bar');
         const strengthText = document.getElementById('strength-text');
 
-        if (!passwordInput) return;
+        if (!passwordInput || !strengthBar || !strengthText) return;
 
         passwordInput.addEventListener('input', () => {
             const val = passwordInput.value;
@@ -149,35 +670,6 @@ const Admin = {
         if (text) text.textContent = '';
     },
 
-    showToast(message, type = 'info', duration = 3000) {
-        const toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) return;
-    
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        
-        let icon = '';
-        if (type === 'success') icon = '✅';
-        else if (type === 'error') icon = '❌';
-        else if (type === 'info') icon = 'ℹ️';
-    
-        toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-message">${message}</span>`;
-        toastContainer.appendChild(toast);
-    
-        setTimeout(() => {
-            toast.remove();
-        }, duration);
-    },
-
-    isValidURL(string) {
-        try {
-            new URL(string);
-            return true;
-        } catch (_) {
-            return false;
-        }
-    },
-
     async changePassword(event) {
         event.preventDefault();
         const currentPassword = document.getElementById('current-password').value;
@@ -191,17 +683,14 @@ const Admin = {
         }
 
         if (newPassword !== confirmPassword) {
-            this.showToast('As senhas não coincidem. Por favor, verifique a digitação.', 'error');
+            this.showToast('As senhas não coincidem.', 'error');
             return;
         }
-        
-        const passwordForm = document.getElementById('password-form');
-        passwordForm.classList.remove('shake-animation'); // Remove antes de adicionar para permitir re-trigger
 
         try {
             const response = await fetch(this.PASSWORD_URL, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
@@ -215,10 +704,6 @@ const Admin = {
                 this.togglePasswordSection(false);
             } else {
                 this.showToast(data.message || 'Erro ao alterar senha', 'error');
-                // Adiciona a animação de shake se houver erro
-                passwordForm.classList.add('shake-animation');
-                // Remove a classe após a animação para que possa ser re-adicionada
-                passwordForm.addEventListener('animationend', () => passwordForm.classList.remove('shake-animation'), { once: true });
             }
         } catch (error) {
             console.error('Erro ao alterar senha:', error);
@@ -226,124 +711,45 @@ const Admin = {
         }
     },
 
-    setupSearch() {
-        const searchInput = document.getElementById('admin-search-input');
-        if (!searchInput) return;
-
-        searchInput.addEventListener('input', () => {
-            const term = searchInput.value.toLowerCase().trim();
-            this.filteredNews = this.allNews.filter(item => 
-                item.title.toLowerCase().includes(term) || 
-                item.description.toLowerCase().includes(term)
-            );
-            this.currentPage = 1; // Volta para a primeira página ao buscar
-            this.renderNewsList();
-        });
-    },
-
-    async loadNews() {
-        const response = await fetch(this.API_URL);
-        this.allNews = await response.json();
-        this.filteredNews = [...this.allNews];
-        this.currentPage = 1;
-        this.renderNewsList();
-    },
-
-    renderNewsList() {
-        const list = document.getElementById('admin-news-items');
-        if (!list) return;
-        list.innerHTML = '';
-
-        // Lógica de Paginação: Corta o array para exibir apenas os itens da página atual
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        const end = start + this.itemsPerPage;
-        const pageItems = this.filteredNews.slice(start, end);
-
-        pageItems.forEach(item => {
-            const listItem = document.createElement('div');
-            listItem.className = 'admin-list-item';
-            listItem.innerHTML = `
-                <img src="${item.imageUrl}" alt="${item.altText || 'Imagem da notícia'}">
-                <div class="admin-item-details">
-                    <h4>${item.title}</h4>
-                    <p>${item.description}</p>
-                </div>
-                <div class="admin-item-actions">
-                    <button class="btn-edit" onclick='Admin.fillFormForEdit(${JSON.stringify(item)})'>Editar</button>
-                    <button class="btn-delete" onclick="Admin.showDeleteConfirmation('${item.id}', '${item.title}')">Excluir</button>
-                </div>
-            `;
-            list.appendChild(listItem);
-        });
-
-        this.renderPaginationControls();
-    },
-
-    renderPaginationControls() {
-        const container = document.getElementById('pagination-controls');
-        if (!container) return;
-
-        const totalPages = Math.ceil(this.filteredNews.length / this.itemsPerPage);
-
-        if (totalPages <= 1) {
-            container.innerHTML = '';
-            return;
-        }
-
-        container.innerHTML = `
-            <button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
-                onclick="Admin.changePage(${this.currentPage - 1})">Anterior</button>
-            <span class="pagination-info">Página ${this.currentPage} de ${totalPages}</span>
-            <button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} 
-                onclick="Admin.changePage(${this.currentPage + 1})">Próxima</button>
-        `;
-    },
-
-    changePage(page) {
-        this.currentPage = page;
-        this.renderNewsList();
-        // Rola suavemente para o início da lista ao mudar de página
-        document.querySelector('.admin-list').scrollIntoView({ behavior: 'smooth' });
-    },
-
+    /* ================= CSV Import / Export ================= */
     exportNewsToCSV() {
-        // Exporta exatamente o que está sendo filtrado no momento
         const newsToExport = this.filteredNews;
-
-        if (newsToExport.length === 0) { // Use showToast instead of alert
+        if (newsToExport.length === 0) {
             this.showToast('Não há notícias para exportar.', 'info');
             return;
         }
 
-        const headers = ['ID', 'Título', 'Data', 'Link', 'URL da Imagem', 'Descrição', 'Link Instagram', 'Texto Alternativo'];
-        const csvRows = [];
-        csvRows.push(headers.join(',')); // Adiciona o cabeçalho
+        const headers = ['ID', 'Título', 'Data', 'DataExibicao', 'Link', 'URL_Imagem', 'Descrição', 'Instagram', 'AltText'];
+        const csvRows = [headers.join(',')];
 
         newsToExport.forEach(item => {
             const values = [
-                `"${item.id || ''}"`, // Garante que o ID seja tratado como string
-                `"${item.title.replace(/"/g, '""')}"`, // Escapa aspas duplas
-                `"${item.date || ''}"`,
-                `"${item.link.replace(/"/g, '""')}"`,
-                `"${item.imageUrl.replace(/"/g, '""')}"`,
-                `"${item.description.replace(/"/g, '""')}"`,
-                `"${item.instagramLink ? item.instagramLink.replace(/"/g, '""') : ''}"`,
-                `"${item.altText ? item.altText.replace(/"/g, '""') : ''}"`
+                `"${(item.id || '').replace(/"/g, '""')}"`,
+                `"${(item.title || '').replace(/"/g, '""')}"`,
+                `"${(item.date || '').replace(/"/g, '""')}"`,
+                `"${(item.displayDate || '').replace(/"/g, '""')}"`,
+                `"${(item.link || '').replace(/"/g, '""')}"`,
+                `"${(item.imageUrl || '').replace(/"/g, '""')}"`,
+                `"${(item.description || '').replace(/"/g, '""')}"`,
+                `"${(item.instagramLink || '').replace(/"/g, '""')}"`,
+                `"${(item.altText || '').replace(/"/g, '""')}"`
             ];
             csvRows.push(values.join(','));
         });
 
-        const csvString = csvRows.join('\n');
+        const csvString = '\uFEFF' + csvRows.join('\r\n');
         const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `noticias_exportadas_${new Date().toISOString().slice(0,10)}.csv`;
+        link.download = `noticias_exportadas_${new Date().toISOString().slice(0, 10)}.csv`;
         link.click();
-        URL.revokeObjectURL(link.href); // Libera o objeto URL
+        URL.revokeObjectURL(link.href);
+        this.showToast('Arquivo CSV baixado com sucesso!', 'success');
     },
 
     triggerCSVImport() {
-        document.getElementById('csv-import-input').click();
+        const input = document.getElementById('csv-import-input');
+        if (input) input.click();
     },
 
     setupCSVImport() {
@@ -356,41 +762,39 @@ const Admin = {
 
             const reader = new FileReader();
             reader.onload = (event) => this.processCSV(event.target.result);
-            reader.readAsText(file);
-            fileInput.value = ''; // Limpa para permitir re-importação do mesmo arquivo
+            reader.readAsText(file, 'utf-8');
+            fileInput.value = '';
         });
     },
 
     async processCSV(csvText) {
         const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-        if (lines.length < 2) return;
+        if (lines.length < 2) {
+            this.showToast('O arquivo CSV parece estar vazio ou sem linhas de dados.', 'error');
+            return;
+        }
 
         const token = localStorage.getItem('auth_token');
         let successCount = 0;
 
-        // Pula o cabeçalho
         for (let i = 1; i < lines.length; i++) {
             const columns = this.parseCSVRow(lines[i]);
             if (columns.length < 6) continue;
 
             const article = {
-                title: columns[1],
-                date: columns[2],
-                displayDate: columns[2], // Fallback simples
-                link: columns[3],
-                imageUrl: columns[4],
-                description: columns[5],
-                instagramLink: columns[6] || '',
-                altText: columns[7] || '',
+                title: columns[1] || 'Sem Título',
+                date: columns[2] || new Date().toISOString().slice(0, 10),
+                displayDate: columns[3] || columns[2] || '',
+                link: columns[4] || '',
+                imageUrl: columns[5] || '',
+                description: columns[6] || '',
+                instagramLink: columns[7] || '',
+                altText: columns[8] || '',
                 readMoreText: 'Leia Mais',
                 published: true
             };
 
-            // Ignora linhas com URLs fundamentais inválidas
-            if (!this.isValidURL(article.link) || !this.isValidURL(article.imageUrl)) {
-                console.warn(`Linha ${i} ignorada: URL da notícia ou da imagem inválida.`);
-                continue;
-            }
+            if (!this.isValidURL(article.link) || !this.isValidURL(article.imageUrl)) continue;
 
             try {
                 const response = await fetch(this.API_URL, {
@@ -402,11 +806,13 @@ const Admin = {
                     body: JSON.stringify(article)
                 });
                 if (response.ok) successCount++;
-            } catch (e) { console.error(`Erro ao importar notícia na linha ${i}:`, e); }
+            } catch (e) {
+                console.error(`Erro ao importar linha ${i}:`, e);
+            }
         }
 
-        this.showToast(`Importação concluída! ${successCount} notícias adicionadas.`, 'success');
-        this.loadNews();
+        this.showToast(`Importação finalizada! ${successCount} notícias importadas.`, 'success');
+        await this.loadNews();
     },
 
     parseCSVRow(row) {
@@ -415,170 +821,176 @@ const Admin = {
         let inQuotes = false;
         for (let i = 0; i < row.length; i++) {
             const char = row[i];
-            if (char === '"' && row[i + 1] === '"') { current += '"'; i++; }
-            else if (char === '"') { inQuotes = !inQuotes; }
-            else if (char === ',' && !inQuotes) { result.push(current); current = ''; }
-            else { current += char; }
+            if (char === '"' && row[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+            } else {
+                current += char;
+            }
         }
         result.push(current);
         return result;
     },
 
-    async handleSubmit(event) {
-        event.preventDefault();
-        const btn = document.getElementById('btn-submit');
-        btn.disabled = true;
-
-        const token = localStorage.getItem('auth_token');
-        const isEdit = document.getElementById('edit-mode').value === 'true';
-        
-        const article = {
-            id: document.getElementById('news-id').value,
-            title: document.getElementById('title').value,
-            link: document.getElementById('link').value,
-            imageUrl: document.getElementById('imageUrl').value,
-            date: document.getElementById('date').value,
-            displayDate: document.getElementById('displayDate').value,
-            description: document.getElementById('description').value,
-            readMoreText: document.getElementById('readMoreText').value,
-            instagramLink: document.getElementById('instagramLink').value,
-            altText: document.getElementById('altText').value,
-            published: true
-        };
-
-        // Validação de URLs antes de enviar para o servidor
-        if (!this.isValidURL(article.link)) {
-            this.showToast('O link da notícia não é uma URL válida.', 'error');
-            btn.disabled = false;
-            return;
-        }
-        if (!this.isValidURL(article.imageUrl)) {
-            this.showToast('A URL da imagem não é uma URL válida.', 'error');
-            btn.disabled = false;
-            return;
-        }
-        if (article.instagramLink && !this.isValidURL(article.instagramLink)) {
-            this.showToast('O link do Instagram não é uma URL válida.', 'error');
-            btn.disabled = false;
-            return;
-        }
-
-        try {
-            const response = await fetch(this.API_URL, {
-                method: isEdit ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(article)
+    /* ================= Helpers de UI ================= */
+    setupPasswordVisibilityToggles() {
+        document.querySelectorAll('.toggle-password-visibility').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const targetId = toggle.dataset.target;
+                const passwordInput = document.getElementById(targetId);
+                if (!passwordInput) return;
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggle.textContent = '🙈';
+                } else {
+                    passwordInput.type = 'password';
+                    toggle.textContent = '👁️';
+                }
             });
+        });
+    },
 
-            if (response.ok) {
-                this.showToast(isEdit ? 'Notícia atualizada com sucesso!' : 'Notícia adicionada com sucesso!', 'success');
-                this.resetForm();
-                this.loadNews();
+    setupImagePreview() {
+        const imageUrlInput = document.getElementById('imageUrl');
+        const imagePreview = document.getElementById('image-preview');
+
+        if (!imageUrlInput || !imagePreview) return;
+
+        imageUrlInput.addEventListener('input', () => {
+            const url = imageUrlInput.value.trim();
+            if (this.isValidURL(url)) {
+                imagePreview.src = url;
+                imagePreview.classList.add('visible');
+            } else {
+                imagePreview.classList.remove('visible');
             }
-        } catch (e) { this.showToast('Erro ao salvar a notícia.', 'error'); }
-        btn.disabled = false;
-    },
-
-    openNewsModal(isEdit = false) {
-        const modal = document.getElementById('news-modal');
-        const title = document.getElementById('modal-title');
-        if (!isEdit) {
-            this.resetForm();
-            title.textContent = 'Adicionar Nova Notícia';
-        } else {
-            title.textContent = 'Editar Notícia';
-        }
-        modal.classList.add('visible');
-    },
-
-    closeNewsModal() {
-        const modal = document.getElementById('news-modal');
-        modal.classList.remove('visible');
-        this.resetForm();
-    },
-
-    fillFormForEdit(article) {
-        this.openNewsModal(true);
-        document.getElementById('news-id').value = article.id;
-        document.getElementById('title').value = article.title;
-        document.getElementById('link').value = article.link;
-        document.getElementById('imageUrl').value = article.imageUrl;
-        document.getElementById('date').value = article.date;
-        document.getElementById('displayDate').value = article.displayDate;
-        document.getElementById('description').value = article.description;
-        document.getElementById('readMoreText').value = article.readMoreText;
-        document.getElementById('instagramLink').value = article.instagramLink;
-        document.getElementById('altText').value = article.altText;
-        
-        document.getElementById('edit-mode').value = 'true';
-        document.getElementById('btn-submit').textContent = 'Atualizar Notícia';
-        
-        const imgPreview = document.getElementById('image-preview');
-        imgPreview.src = article.imageUrl;
-        imgPreview.classList.add('visible');
-    },
-
-    resetForm() {
-        const form = document.getElementById('news-form');
-        if (form) form.reset();
-        const idField = document.getElementById('news-id');
-        if (idField) idField.value = '';
-        const editModeField = document.getElementById('edit-mode');
-        if (editModeField) editModeField.value = 'false';
-        const btnSubmit = document.getElementById('btn-submit');
-        if (btnSubmit) btnSubmit.textContent = 'Salvar Notícia';
-        const imgPreview = document.getElementById('image-preview');
-        if (imgPreview) imgPreview.classList.remove('visible');
-    },
-
-    // Funções para o modal de confirmação de exclusão
-    showDeleteConfirmation(id, title) {
-        const modal = document.getElementById('delete-confirmation-modal');
-        const newsTitleSpan = document.getElementById('news-title-to-delete');
-        newsTitleSpan.textContent = title;
-        modal.classList.add('visible');
-
-        // Armazena o ID da notícia a ser excluída no botão de confirmação
-        document.getElementById('confirm-delete-btn').dataset.newsId = id;
-
-        // Adiciona listeners para os botões do modal
-        document.getElementById('confirm-delete-btn').onclick = () => this.confirmDelete();
-        document.getElementById('cancel-delete-btn').onclick = () => this.hideDeleteConfirmation();
-    },
-
-    hideDeleteConfirmation() {
-        const modal = document.getElementById('delete-confirmation-modal');
-        modal.classList.remove('visible');
-        document.getElementById('confirm-delete-btn').dataset.newsId = ''; // Limpa o ID
-    },
-
-    async confirmDelete() {
-        const id = document.getElementById('confirm-delete-btn').dataset.newsId;
-        if (!id) return; // Não faz nada se o ID não estiver definido
-
-        const token = localStorage.getItem('auth_token');
-        
-        const response = await fetch(this.API_URL, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ id })
+            this.updateLivePreview();
         });
 
-        if (response.ok) {
-            this.showToast('Notícia excluída com sucesso!', 'success');
-            this.loadNews();
-        } else {
-            this.showToast('Erro ao excluir notícia.', 'error');
+        imagePreview.onerror = () => imagePreview.classList.remove('visible');
+    },
+
+    setupDragAndDrop() {
+        const dropZone = document.getElementById('image-drop-zone');
+        const imageUrlInput = document.getElementById('imageUrl');
+        if (!dropZone || !imageUrlInput) return;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+
+        dropZone.addEventListener('dragover', () => dropZone.classList.add('drag-over'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+        dropZone.addEventListener('drop', (e) => {
+            dropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imageUrlInput.value = event.target.result;
+                    imageUrlInput.dispatchEvent(new Event('input'));
+                };
+                reader.readAsDataURL(file);
+            } else {
+                this.showToast('Por favor, solte apenas arquivos de imagem.', 'error');
+            }
+        });
+    },
+
+    setupLivePreview() {
+        const inputs = ['title', 'imageUrl', 'displayDate', 'description', 'readMoreText', 'instagramLink', 'altText'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => this.updateLivePreview());
+        });
+    },
+
+    updateLivePreview() {
+        const container = document.getElementById('live-preview-content');
+        if (!container) return;
+
+        const title = (document.getElementById('title')?.value || '').trim() || 'Título da Notícia';
+        const imageUrl = (document.getElementById('imageUrl')?.value || '').trim() || 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=500&q=80';
+        const displayDate = (document.getElementById('displayDate')?.value || '').trim() || 'Data de Exibição';
+        const description = (document.getElementById('description')?.value || '').trim() || 'A prévia da descrição aparecerá aqui em tempo real conforme você preenche o formulário...';
+        const readMoreText = (document.getElementById('readMoreText')?.value || '').trim() || 'Leia Mais';
+        const instagramLink = (document.getElementById('instagramLink')?.value || '').trim();
+        const altText = (document.getElementById('altText')?.value || '').trim() || 'Prévia da notícia';
+
+        const instaBadge = instagramLink ? `
+            <span style="font-size: 0.8rem; background: rgba(225,48,108,0.1); color: #e1306c; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                📷 Instagram
+            </span>
+        ` : '';
+
+        container.innerHTML = `
+            <div class="news-card visible" style="opacity: 1; transform: none; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <img src="${imageUrl}" alt="${altText}" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=500&q=80'">
+                <div class="news-content">
+                    <div class="card-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <time class="news-date" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-color);">${displayDate}</time>
+                        ${instaBadge}
+                    </div>
+                    <h3 style="font-size: 1.05rem; margin: 0 0 8px 0; line-height: 1.3;">${title}</h3>
+                    <p style="font-size: 0.85rem; color: var(--light-text-color); margin-bottom: 12px; line-height: 1.4;">${description}</p>
+                    <div class="card-footer">
+                        <span class="read-more" style="font-weight: 600; color: var(--primary-color); font-size: 0.85rem;">${readMoreText} →</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const newsModal = document.getElementById('news-modal');
+                const deleteModal = document.getElementById('delete-confirmation-modal');
+                if (deleteModal && deleteModal.classList.contains('visible')) {
+                    this.hideDeleteConfirmation();
+                } else if (newsModal && newsModal.classList.contains('visible')) {
+                    this.closeNewsModal();
+                }
+            }
+        });
+    },
+
+    showToast(message, type = 'info', duration = 3500) {
+        const toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        let icon = 'ℹ️';
+        if (type === 'success') icon = '✅';
+        else if (type === 'error') icon = '❌';
+
+        toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-message">${message}</span>`;
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => toast.remove(), duration);
+    },
+
+    isValidURL(string) {
+        if (!string) return false;
+        try {
+            const url = new URL(string);
+            return url.protocol === 'http:' || url.protocol === 'https:' || string.startsWith('data:image/');
+        } catch (_) {
+            return false;
         }
-        this.hideDeleteConfirmation(); // Esconde o modal após a ação
     }
 };
 
-// Adicione esta linha ao final do arquivo para iniciar o Admin automaticamente
 document.addEventListener('DOMContentLoaded', () => Admin.init());

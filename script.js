@@ -1,13 +1,7 @@
 const App = {
-    /**
-     * Inicializa todos os módulos da aplicação.
-     * A inicialização agora é assíncrona para aguardar o carregamento das notícias.
-     */
     async init() {
         this.theme.init();
-        // Aguarda as notícias serem carregadas e renderizadas
         await this.news.init();
-        // Só então inicializa os módulos que dependem dos cards
         this.filter.init();
         this.ui.init();
     },
@@ -16,7 +10,6 @@ const App = {
      * Módulo para gerenciar o tema (claro/escuro).
      */
     theme: {
-        // Centralizamos os paths dos SVGs para fácil manutenção
         icons: {
             sun: '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 12c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1H3c-.55 0-1 .45-1 1zm18 0c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1zm-8-8c.55 0 1-.45 1-1V1c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm0 16c.55 0 1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zM5.64 5.64c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L5.64 2.81c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.42zM18.36 18.36c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.41-1.41c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.41zM5.64 18.36c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41zM18.36 5.64c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41z" />',
             moon: '<path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.64-.11 2.41-.31-1.12-.9-1.91-2.18-1.91-3.69 0-2.48 2.02-4.5 4.5-4.5.31 0 .62.03.91.09C19.53 6.88 16.03 3 12 3z" />'
@@ -28,7 +21,7 @@ const App = {
             this.themeStatus = document.getElementById('theme-status');
             this.htmlEl = document.documentElement;
             this.setInitialTheme();
-            this.addLoginButtonListener(); // Adiciona o listener para o botão de login
+            this.addLoginButtonListener();
             this.addEventListeners();
         },
 
@@ -40,6 +33,7 @@ const App = {
         },
 
         addEventListeners() {
+            if (!this.themeToggle) return;
             this.themeToggle.addEventListener('click', () => {
                 this.themeToggle.classList.add('rotating');
                 const currentTheme = this.htmlEl.getAttribute('data-theme');
@@ -64,23 +58,33 @@ const App = {
             localStorage.setItem('theme', theme);
 
             const isDark = theme === 'dark';
-            this.themeIcon.innerHTML = isDark ? this.icons.sun : this.icons.moon;
+            if (this.themeIcon) {
+                this.themeIcon.innerHTML = isDark ? this.icons.sun : this.icons.moon;
+            }
 
-            // Anuncia a mudança para leitores de tela
-            const statusMessage = `Tema alterado para ${isDark ? 'escuro' : 'claro'}.`;
-            this.themeStatus.textContent = statusMessage;
+            if (this.themeStatus) {
+                this.themeStatus.textContent = `Tema alterado para ${isDark ? 'escuro' : 'claro'}.`;
+            }
         }
     },
 
     /**
-     * Módulo para carregar e renderizar as notícias a partir de um JSON.
+     * Módulo para carregar, filtrar e paginar as notícias.
      */
     news: {
+        allNews: [],
+        filteredNews: [],
+        currentPage: 1,
+        itemsPerPage: 6, // 6 notícias por página para grid equilibrado (ex: 2x3 ou 3x2)
+        searchTerm: '',
+
         async init() {
             this.container = document.querySelector('.news-preview-container');
+            this.paginationContainer = document.getElementById('pagination-controls');
+            if (!this.container) return;
+
             this.spinner = this.container.querySelector('.spinner');
             this.noResultsEl = this.container.querySelector('.no-results-message');
-            if (!this.container) return;
 
             try {
                 const response = await fetch('news.json');
@@ -88,66 +92,99 @@ const App = {
                     throw new Error(`Erro HTTP! Status: ${response.status}`);
                 }
                 const newsData = await response.json();
-                this.render(newsData);
+                this.processData(newsData);
+                this.renderPage();
             } catch (error) {
                 console.error("Falha ao carregar as notícias:", error);
-                this.noResultsEl.textContent = 'Não foi possível carregar as notícias. Tente novamente mais tarde.';
-                this.noResultsEl.classList.remove('hidden');
+                if (this.noResultsEl) {
+                    this.noResultsEl.textContent = 'Não foi possível carregar as notícias. Tente novamente mais tarde.';
+                    this.noResultsEl.classList.remove('hidden');
+                }
             } finally {
-                // Esconde o spinner independentemente do resultado (sucesso ou erro)
-                this.spinner.classList.add('hidden');
+                if (this.spinner) this.spinner.classList.add('hidden');
             }
         },
 
-        render(newsData) {
-            // Remove duplicatas baseadas na URL do link antes de processar
+        processData(newsData) {
+            // Remove duplicatas baseadas no link
             const uniqueData = Array.from(new Map(newsData.map(article => [article.link, article])).values());
 
-            // Filtra as notícias para incluir apenas as publicadas e depois ordena pela data
-            const publishedNews = uniqueData
+            // Filtra publicadas e ordena pelas mais recentes
+            this.allNews = uniqueData
                 .filter(article => article.published)
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            if (publishedNews.length === 0) {
-                this.noResultsEl.textContent = 'Nenhuma notícia publicada no momento.';
-                this.noResultsEl.classList.remove('hidden');
+            this.filteredNews = [...this.allNews];
+        },
+
+        renderPage() {
+            // Remove apenas os cards já renderizados
+            const existingCards = this.container.querySelectorAll('.news-card');
+            existingCards.forEach(card => card.remove());
+
+            if (this.filteredNews.length === 0) {
+                if (this.noResultsEl) this.noResultsEl.classList.remove('hidden');
+                if (this.paginationContainer) this.paginationContainer.innerHTML = '';
                 return;
             }
 
-            // Remove any previously rendered news cards (excluding the no-results-message)
-            const existingNewsCards = this.container.querySelectorAll('.news-card');
-            existingNewsCards.forEach(card => card.remove());
+            if (this.noResultsEl) this.noResultsEl.classList.add('hidden');
 
-            this.noResultsEl.classList.add('hidden');
+            // Calcula a fatia de itens da página atual
+            const totalPages = Math.ceil(this.filteredNews.length / this.itemsPerPage);
+            if (this.currentPage > totalPages) this.currentPage = 1;
 
-            const newsHtml = publishedNews.map(article => this.createArticleHtml(article)).join('');
-            // Insert the new news cards before the no-results-message, or at the end if no-results-message is not found
+            const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+            const endIndex = startIndex + this.itemsPerPage;
+            const pageNews = this.filteredNews.slice(startIndex, endIndex);
+
+            const newsHtml = pageNews.map(article => this.createArticleHtml(article)).join('');
+
             if (this.noResultsEl) {
                 this.noResultsEl.insertAdjacentHTML('beforebegin', newsHtml);
             } else {
                 this.container.insertAdjacentHTML('beforeend', newsHtml);
             }
+
+            // Anima e inicializa expansores
+            App.ui.animateCardsOnLoad();
+            App.ui.initShowMore();
+
+            // Renderiza controles de paginação
+            this.renderPagination(totalPages);
         },
 
         createArticleHtml(article) {
-            // Usamos template literals para criar o HTML de forma legível e segura.
+            let title = article.title;
+            let description = article.description;
+
+            // Se houver busca ativa, destaca o termo encontrado
+            if (this.searchTerm) {
+                const regex = new RegExp(`(${this.escapeRegex(this.searchTerm)})`, 'gi');
+                title = title.replace(regex, '<mark>$1</mark>');
+                description = description.replace(regex, '<mark>$1</mark>');
+            }
+
+            const fallbackImg = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=500&q=80';
+
             return `
                 <article class="news-card">
-                    <img src="${article.imageUrl}"
-                         alt="${article.altText}"
-                         loading="lazy">
+                    <img src="${article.imageUrl || fallbackImg}"
+                         alt="${article.altText || article.title}"
+                         loading="lazy"
+                         onerror="this.src='${fallbackImg}'">
                     <div class="news-content">
                         <div class="card-meta">
-                            <time class="news-date" datetime="${article.date}">${article.displayDate}</time>
+                            <time class="news-date" datetime="${article.date}">${article.displayDate || article.date}</time>
                             ${this.createInstagramLink(article.instagramLink)}
                         </div>
                         <a href="${article.link}"
                             target="_blank" rel="noopener noreferrer" class="stretched-link">
-                            <h3>${article.title}</h3>
+                            <h3>${title}</h3>
                         </a>
-                        <p>${article.description}</p>
+                        <p>${description}</p>
                         <div class="card-footer">
-                            <span class="read-more">${article.readMoreText}</span>
+                            <span class="read-more">${article.readMoreText || 'Leia Mais'}</span>
                         </div>
                     </div>
                 </article>
@@ -155,9 +192,7 @@ const App = {
         },
 
         createInstagramLink(url) {
-            if (!url) {
-                return ''; // Retorna uma string vazia se a URL não existir
-            }
+            if (!url) return '';
             return `
                 <a href="${url}" target="_blank"
                     rel="noopener noreferrer" class="instagram-link"
@@ -171,37 +206,85 @@ const App = {
                     </svg>
                 </a>
             `;
+        },
+
+        renderPagination(totalPages) {
+            if (!this.paginationContainer) return;
+
+            if (totalPages <= 1) {
+                this.paginationContainer.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <button class="pagination-btn" ${this.currentPage === 1 ? 'disabled' : ''} onclick="App.news.changePage(${this.currentPage - 1})">
+                    ◀ Anterior
+                </button>
+                <div class="pagination-numbers">
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                html += `
+                    <button class="pagination-number ${i === this.currentPage ? 'active' : ''}" onclick="App.news.changePage(${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+
+            html += `
+                </div>
+                <button class="pagination-btn" ${this.currentPage === totalPages ? 'disabled' : ''} onclick="App.news.changePage(${this.currentPage + 1})">
+                    Próxima ▶
+                </button>
+            `;
+
+            this.paginationContainer.innerHTML = html;
+        },
+
+        changePage(page) {
+            const totalPages = Math.ceil(this.filteredNews.length / this.itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+
+            this.currentPage = page;
+            this.renderPage();
+
+            // Rola suavemente até o topo da seção de notícias
+            const section = document.querySelector('.latest-news');
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        },
+
+        escapeRegex(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
     },
 
     /**
-     * Módulo para gerenciar a busca e filtro de notícias.
+     * Módulo para busca e filtro instantâneo de notícias.
      */
     filter: {
         init() {
             this.searchInput = document.getElementById('search-input');
-            // O init do filtro agora é chamado DEPOIS que os cards são criados.
-            // Portanto, podemos selecionar os elementos com segurança.
-            this.newsCards = document.querySelectorAll('.news-card');
-            this.noResultsMessage = document.querySelector('.no-results-message');
+            if (!this.searchInput) return;
 
-            if (!this.searchInput || this.newsCards.length === 0) return;
+            this.searchInput.addEventListener('input', this.debounce((e) => {
+                const term = e.target.value.toLowerCase().trim();
+                App.news.searchTerm = term;
 
-            this.storeOriginalContent();
-            this.addEventListeners();
-        },
+                if (!term) {
+                    App.news.filteredNews = [...App.news.allNews];
+                } else {
+                    App.news.filteredNews = App.news.allNews.filter(article => {
+                        const title = (article.title || '').toLowerCase();
+                        const desc = (article.description || '').toLowerCase();
+                        return title.includes(term) || desc.includes(term);
+                    });
+                }
 
-        storeOriginalContent() {
-            this.newsCards.forEach(card => {
-                const titleEl = card.querySelector('h3');
-                const descriptionEl = card.querySelector('p');
-                if (titleEl) card.dataset.originalTitle = titleEl.textContent;
-                if (descriptionEl) card.dataset.originalDescription = descriptionEl.textContent;
-            });
-        },
-
-        addEventListeners() {
-            this.searchInput.addEventListener('input', this.debounce(this.applyFilter.bind(this), 300));
+                App.news.currentPage = 1;
+                App.news.renderPage();
+            }, 250));
         },
 
         debounce(func, delay) {
@@ -210,69 +293,35 @@ const App = {
                 clearTimeout(timeoutId);
                 timeoutId = setTimeout(() => func.apply(this, args), delay);
             };
-        },
-
-        applyFilter() {
-            const searchTerm = this.searchInput.value.toLowerCase().trim();
-            let visibleCardsCount = 0;
-
-            this.newsCards.forEach(card => {
-                const titleEl = card.querySelector('h3');
-                const descriptionEl = card.querySelector('p');
-                const originalTitle = card.dataset.originalTitle || '';
-                const originalDescription = card.dataset.originalDescription || '';
-
-                const isVisible = !searchTerm || originalTitle.toLowerCase().includes(searchTerm) || originalDescription.toLowerCase().includes(searchTerm);
-
-                requestAnimationFrame(() => card.classList.toggle('hidden', !isVisible));
-
-                if (isVisible) {
-                    visibleCardsCount++;
-                    if (searchTerm) {
-                        const regex = new RegExp(searchTerm, 'gi');
-                        if (titleEl) titleEl.innerHTML = originalTitle.replace(regex, match => `<mark>${match}</mark>`);
-                        if (descriptionEl) descriptionEl.innerHTML = originalDescription.replace(regex, match => `<mark>${match}</mark>`);
-                    } else {
-                        if (titleEl) titleEl.innerHTML = originalTitle;
-                        if (descriptionEl) descriptionEl.innerHTML = originalDescription;
-                    }
-                }
-            });
-
-            this.noResultsMessage.classList.toggle('hidden', visibleCardsCount > 0);
         }
     },
 
     /**
-     * Módulo para gerenciar interações e animações da UI.
+     * Módulo para gerenciar animações e UI.
      */
     ui: {
-        // O init da UI também é chamado DEPOIS que os cards são criados.
         init() {
-            this.animateCardsOnLoad();
-            this.initShowMore();
             this.initBackToTop();
         },
 
         animateCardsOnLoad() {
             const newsCards = document.querySelectorAll('.news-card');
             newsCards.forEach((card, index) => {
-                setTimeout(() => card.classList.add('visible'), index * 100);
+                card.style.animationDelay = `${index * 80}ms`;
+                card.classList.add('visible');
             });
         },
 
         initShowMore() {
-            // Seleciona os cards que foram criados dinamicamente.
             document.querySelectorAll('.news-card').forEach(card => {
                 const description = card.querySelector('.news-content p');
-                if (!description) return;
+                if (!description || card.querySelector('.show-more-btn')) return;
 
                 const textWrapper = document.createElement('div');
                 textWrapper.className = 'text-wrapper';
                 description.parentNode.insertBefore(textWrapper, description);
                 textWrapper.appendChild(description);
 
-                // Verifica se o texto real é maior que a área visível
                 const isOverflowing = description.scrollHeight > description.clientHeight;
 
                 if (isOverflowing) {
@@ -281,11 +330,10 @@ const App = {
                     showMoreBtn.className = 'show-more-btn';
                     textWrapper.appendChild(showMoreBtn);
 
-                    showMoreBtn.addEventListener('click', () => {
+                    showMoreBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
                         const isExpanded = description.classList.toggle('expanded');
                         showMoreBtn.textContent = isExpanded ? 'Mostrar menos' : 'Mostrar mais';
-
-                        // Define a altura máxima dinamicamente para se ajustar ao conteúdo
                         description.style.maxHeight = isExpanded ? `${description.scrollHeight}px` : null;
                     });
                 }
@@ -310,5 +358,4 @@ const App = {
     }
 };
 
-// Garante que o DOM esteja carregado antes de inicializar a aplicação.
 document.addEventListener('DOMContentLoaded', () => App.init());
