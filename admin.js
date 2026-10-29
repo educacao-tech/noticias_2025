@@ -878,6 +878,7 @@ const Admin = {
     setupDragAndDrop() {
         const dropZone = document.getElementById('image-drop-zone');
         const imageUrlInput = document.getElementById('imageUrl');
+        const fileInput = document.getElementById('image-file-input');
         if (!dropZone || !imageUrlInput) return;
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -890,20 +891,73 @@ const Admin = {
         dropZone.addEventListener('dragover', () => dropZone.classList.add('drag-over'));
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 
-        dropZone.addEventListener('drop', (e) => {
+        // Clique para selecionar arquivo
+        if (fileInput) {
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', async (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    await this.handleImageFile(e.target.files[0], imageUrlInput);
+                    fileInput.value = '';
+                }
+            });
+        }
+
+        dropZone.addEventListener('drop', async (e) => {
             dropZone.classList.remove('drag-over');
             const files = e.dataTransfer.files;
             if (files.length > 0 && files[0].type.startsWith('image/')) {
-                const file = files[0];
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    imageUrlInput.value = event.target.result;
-                    imageUrlInput.dispatchEvent(new Event('input'));
-                };
-                reader.readAsDataURL(file);
+                await this.handleImageFile(files[0], imageUrlInput);
             } else {
-                this.showToast('Por favor, solte apenas arquivos de imagem.', 'error');
+                this.showToast('Por favor, envie apenas arquivos de imagem.', 'error');
             }
+        });
+    },
+
+    async handleImageFile(file, targetInput) {
+        this.showToast('Otimizando imagem para upload...', 'info', 1500);
+        try {
+            const compressed = await this.compressImage(file);
+            targetInput.value = compressed;
+            targetInput.dispatchEvent(new Event('input'));
+            this.showToast('Imagem otimizada com sucesso!', 'success', 2000);
+        } catch (err) {
+            console.error('Erro na compressão:', err);
+            this.showToast('Não foi possível processar a imagem.', 'error');
+        }
+    },
+
+    compressImage(file, maxWidth = 800, maxHeight = 600, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedDataUrl);
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
         });
     },
 

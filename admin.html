@@ -256,10 +256,11 @@
                     <div class="form-group">
                         <label for="imageUrl">URL da Imagem de Capa *</label>
                         <input type="url" id="imageUrl" placeholder="https://..." required>
-                        <div id="image-drop-zone" class="drop-zone">
-                            🖼️ Arraste e solte uma imagem aqui ou cole a URL acima
+                        <input type="file" id="image-file-input" accept="image/*" class="hidden">
+                        <div id="image-drop-zone" class="drop-zone" title="Clique ou arraste uma foto aqui" style="cursor: pointer;">
+                            🖼️ <strong>Clique para selecionar</strong> ou arraste uma imagem aqui
                             <br>
-                            <small>(Formatos recomendados: JPG, PNG, WEBP)</small>
+                            <small>(Imagens pesadas são otimizadas e comprimidas automaticamente)</small>
                         </div>
                         <img id="image-preview" src="" alt="Prévia da Imagem" class="hidden">
                     </div>
