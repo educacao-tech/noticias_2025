@@ -211,6 +211,7 @@
                         <option value="published">🟢 Publicadas</option>
                         <option value="draft">🟡 Rascunhos</option>
                         <option value="featured">⭐ Destaques</option>
+                        <option value="scheduled">⏰ Agendadas Futuras</option>
                     </select>
 
                     <select id="admin-sort-select" class="admin-filter-select" onchange="Admin.handleSortChange()">
@@ -301,6 +302,14 @@
                         </div>
                     </div>
 
+                    <div class="form-group" style="background: var(--background-color); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <label for="publishAt" style="margin-bottom: 4px; font-weight: 600;">⏰ Agendamento de Publicação Automática (Opcional)</label>
+                        <input type="datetime-local" id="publishAt" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color);">
+                        <small style="color: var(--text-secondary); font-size: 0.78rem; display: block; margin-top: 4px;">
+                            Deixe vazio para publicação imediata. Notícias com data futura ficam ocultas aos visitantes até o momento programado.
+                        </small>
+                    </div>
+    
                     <div class="form-group">
                         <label for="imageUrl">URL da Imagem de Capa *</label>
                         <input type="url" id="imageUrl" placeholder="https://... ou faça upload abaixo" required>
@@ -325,7 +334,16 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="description">Resumo / Descrição da Notícia *</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                            <label for="description" style="margin: 0;">Resumo / Descrição da Notícia *</label>
+                            <div class="formatting-toolbar" style="display: flex; gap: 4px;">
+                                <button type="button" class="btn-secondary-action" onclick="Admin.insertFormatting('bold')" style="padding: 3px 8px; font-size: 0.78rem;" title="Negrito"><b>B</b> Negrito</button>
+                                <button type="button" class="btn-secondary-action" onclick="Admin.insertFormatting('italic')" style="padding: 3px 8px; font-size: 0.78rem;" title="Itálico"><i>I</i> Itálico</button>
+                                <button type="button" class="btn-secondary-action" onclick="Admin.insertFormatting('list')" style="padding: 3px 8px; font-size: 0.78rem;" title="Lista com marcadores">• Lista</button>
+                                <button type="button" class="btn-secondary-action" onclick="Admin.insertFormatting('link')" style="padding: 3px 8px; font-size: 0.78rem;" title="Link externo">🔗 Link</button>
+                                <button type="button" class="btn-secondary-action" onclick="Admin.insertFormatting('quote')" style="padding: 3px 8px; font-size: 0.78rem;" title="Citação">❝ Citação</button>
+                            </div>
+                        </div>
                         <textarea id="description" rows="4" placeholder="Breve introdução que aparecerá no carrossel..." required></textarea>
                     </div>
 

@@ -1,4 +1,4 @@
-const API_BASE = (window.location.protocol === 'http:' || window.location.protocol === 'https:') && window.location.port === '3001'
+const API_BASE = (window.location.protocol === 'http:' || window.location.protocol === 'https:')
     ? ''
     : 'http://localhost:3001';
 
@@ -10,6 +10,7 @@ const Admin = {
     UPLOAD_URL: `${API_BASE}/api/upload`,
 
     allNews: [],
+    currentGallery: [],
     filteredNews: [],
     currentPage: 1,
     itemsPerPage: 10,
@@ -24,6 +25,7 @@ const Admin = {
         this.setupLivePreview();
         this.setupDragAndDrop();
         this.setupKeyboardShortcuts();
+        this.setupGalleryUpload();
 
         const token = localStorage.getItem('auth_token');
         if (token) {
@@ -148,78 +150,104 @@ const Admin = {
         if (badge) badge.textContent = savedUser;
     },
 
-    /* ================= Estatísticas / KPIs ================= */
-    updateStats() {
-        const totalEl = document.getElementById('stat-total-news');
-        const yearEl = document.getElementById('stat-year-news');
-        const latestEl = document.getElementById('stat-latest-date');
-        const filteredEl = document.getElementById('stat-filtered-news');
-
-        if (totalEl) totalEl.textContent = this.allNews.length;
-        if (filteredEl) filteredEl.textContent = this.filteredNews.length;
-
-        const count2026 = this.allNews.filter(n => (n.date || '').startsWith('2026')).length;
-        if (yearEl) yearEl.textContent = count2026;
-
-        if (latestEl) {
-            if (this.allNews.length > 0) {
-                const dates = this.allNews
-                    .map(n => n.date)
-                    .filter(Boolean)
-                    .sort()
-                    .reverse();
-                if (dates.length > 0) {
-                    const [y, m, d] = dates[0].split('-');
-                    latestEl.textContent = `${d}/${m}/${y}`;
-                } else {
-                    latestEl.textContent = 'Sem data';
-                }
-            } else {
-                latestEl.textContent = '--';
-            }
-        }
-    },
-
-    /* ================= Carregamento e Ordenação ================= */
     async loadNews() {
-        const loading = document.getElementById('loading-overlay');
-        if (loading) loading.classList.add('visible');
-
         try {
-            const response = await fetch(this.API_URL);
-            this.allNews = await response.json();
+            const token = localStorage.getItem('auth_token');
+            const res = await fetch(`${this.API_URL}?all=true`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!res.ok) {
+                throw new Error(`Erro ${res.status}: ${res.statusText}`);
+            }
+            const data = await res.json();
+            this.allNews = Array.isArray(data) ? data : [];
             this.applySortAndFilter();
         } catch (error) {
             console.error('Erro ao carregar notícias:', error);
-            this.showToast('Falha ao carregar lista de notícias', 'error');
-        } finally {
-            if (loading) loading.classList.remove('visible');
+            this.showToast('Erro ao carregar notícias do servidor.', 'error');
         }
     },
 
-    handleSortChange() {
-        const select = document.getElementById('admin-sort-select');
-        if (select) {
-            this.currentSort = select.value;
-            this.applySortAndFilter();
-        }
+    setupGalleryUpload() {
+        const input = document.getElementById('gallery-file-input');
+        if (!input) return;
+        input.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files || []);
+            if (!files.length) return;
+            for (const file of files) {
+                try {
+                    const compressedBase64 = await this.compressImage(file);
+                    const token = localStorage.getItem('auth_token');
+                    const uploadRes = await fetch(this.UPLOAD_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ image: compressedBase64 })
+                    });
+                    if (uploadRes.ok) {
+                        const data = await uploadRes.json();
+                        this.currentGallery.push(data.url);
+                    } else {
+                        this.currentGallery.push(compressedBase64);
+                    }
+                } catch (err) {
+                    console.error('Erro ao adicionar foto à galeria:', err);
+                }
+            }
+            input.value = '';
+            this.renderGalleryPreviews();
+        });
     },
 
-    handleCategoryFilterChange() {
-        const select = document.getElementById('admin-category-filter');
-        if (select) {
-            this.currentCategory = select.value;
-            this.applySortAndFilter();
-        }
+    renderGalleryPreviews() {
+        const container = document.getElementById('gallery-previews');
+        if (!container) return;
+        container.innerHTML = '';
+        (this.currentGallery || []).forEach((imgUrl, index) => {
+            const item = document.createElement('div');
+            item.style.cssText = 'position: relative; width: 70px; height: 70px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);';
+            item.innerHTML = `
+                <img src="${imgUrl}" alt="Foto Galeria" style="width: 100%; height: 100%; object-fit: cover;">
+                <button type="button" title="Remover foto" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;">✕</button>
+            `;
+            item.querySelector('button').addEventListener('click', () => {
+                this.currentGallery.splice(index, 1);
+                this.renderGalleryPreviews();
+            });
+            container.appendChild(item);
+        });
     },
 
-    handleStatusFilterChange() {
-        const select = document.getElementById('admin-status-filter');
-        if (select) {
-            this.currentStatus = select.value;
-            this.applySortAndFilter();
+    /* ================= Estatísticas / KPIs ================= */
+    updateStats() {
+        const totalEl = document.getElementById('stat-total-news');
+        const totalViewsEl = document.getElementById('stat-total-views');
+        const topViewsEl = document.getElementById('stat-top-views');
+        const yearEl = document.getElementById('stat-year-news');
+
+        if (totalEl) totalEl.textContent = this.allNews.length;
+
+        const totalViews = this.allNews.reduce((acc, item) => acc + (parseInt(item.views, 10) || 0), 0);
+        if (totalViewsEl) totalViewsEl.textContent = totalViews.toLocaleString('pt-BR');
+
+        if (topViewsEl) {
+            if (this.allNews.length > 0) {
+                const sortedByViews = [...this.allNews].sort((a, b) => (b.views || 0) - (a.views || 0));
+                const top = sortedByViews[0];
+                topViewsEl.textContent = (top.views || 0) + ' views';
+                topViewsEl.title = top.title || '';
+            } else {
+                topViewsEl.textContent = '0 views';
+            }
         }
+
+        const count2026 = this.allNews.filter(n => (n.date || '').startsWith('2026')).length;
+        if (yearEl) yearEl.textContent = count2026;
     },
+
+    
 
     handlePageSizeChange() {
         const select = document.getElementById('admin-page-size-select');
@@ -257,6 +285,8 @@ const Admin = {
                 matchesStatus = item.published === false;
             } else if (this.currentStatus === 'featured') {
                 matchesStatus = Boolean(item.featured);
+            } else if (this.currentStatus === 'scheduled') {
+                matchesStatus = Boolean(item.publishAt && new Date(item.publishAt) > new Date());
             }
 
             return matchesSearch && matchesCategory && matchesStatus;
@@ -270,6 +300,8 @@ const Admin = {
             const titleB = (b.title || '').toLowerCase();
 
             switch (this.currentSort) {
+                case 'views-desc':
+                    return (b.views || 0) - (a.views || 0);
                 case 'date-asc':
                     return dateA.localeCompare(dateB);
                 case 'title-asc':
@@ -339,6 +371,18 @@ const Admin = {
             card.dataset.newsId = item.id;
 
             const fallbackImg = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=400&q=80';
+            const viewsBadge = `
+                <span class="badge-views-admin" style="font-size: 0.75rem; background: var(--background-color); color: var(--text-secondary); padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border-color);">
+                    👁️ ${(item.views || 0).toLocaleString('pt-BR')}
+                </span>
+            `;
+
+            const galleryBadge = (item.gallery && item.gallery.length > 0) ? `
+                <span style="font-size: 0.75rem; background: rgba(52, 152, 219, 0.15); color: #2980b9; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                    🖼️ +${item.gallery.length} fotos
+                </span>
+            ` : '';
+            
             const instagramBadge = item.instagramLink ? `
                 <a href="${item.instagramLink}" target="_blank" rel="noopener noreferrer" class="badge-instagram" title="Ver no Instagram">
                     📷 Instagram
@@ -350,6 +394,20 @@ const Admin = {
                     ⭐ Destaque
                 </span>
             ` : '';
+
+            const isScheduled = item.publishAt && new Date(item.publishAt) > new Date();
+            const scheduledBadge = isScheduled ? `
+                <span class="badge-scheduled-admin" style="font-size: 0.75rem; background: rgba(243, 156, 18, 0.15); color: #d35400; padding: 2px 8px; border-radius: 12px; font-weight: 700; border: 1px solid rgba(243, 156, 18, 0.4);">
+                    ⏰ Agendada (${new Date(item.publishAt).toLocaleDateString('pt-BR')} ${new Date(item.publishAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })})
+                </span>
+            ` : '';
+
+            const totalReactions = (item.reactions ? (item.reactions.love || 0) + (item.reactions.clap || 0) + (item.reactions.idea || 0) + (item.reactions.party || 0) : 0);
+            const reactionBadge = `
+                <span style="font-size: 0.75rem; background: var(--background-color); color: var(--text-secondary); padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border-color);" title="❤️ ${item.reactions?.love || 0} | 👏 ${item.reactions?.clap || 0} | 💡 ${item.reactions?.idea || 0} | 🎉 ${item.reactions?.party || 0}">
+                    ❤️ ${totalReactions} reações
+                </span>
+            `;
 
             const isPublished = item.published !== false;
             const statusBadge = isPublished ? `
@@ -382,7 +440,11 @@ const Admin = {
                         ${categoryBadge}
                         ${statusBadge}
                         ${featuredBadge}
-                        ${instagramBadge}
+                        ${viewsBadge}
+                            ${reactionBadge}
+                            ${scheduledBadge}
+                            ${galleryBadge}
+                            ${instagramBadge}
                     </div>
                     <h3 class="admin-card-title">${item.title}</h3>
                     <p class="admin-card-desc">${item.description}</p>
@@ -485,11 +547,14 @@ const Admin = {
         if (!article) return;
 
         this.openNewsModal(false);
+        this.currentGallery = Array.isArray(article.gallery) ? [...article.gallery] : [];
+        this.renderGalleryPreviews();
         document.getElementById('title').value = `[CÓPIA] ${article.title}`;
         document.getElementById('link').value = article.link || '';
         document.getElementById('imageUrl').value = article.imageUrl || '';
         document.getElementById('category').value = article.category || 'Educação Básica';
-        document.getElementById('featured').checked = false; // cópia não nasce destacada
+        document.getElementById('featured').checked = false;
+        const dupPublish = document.getElementById('publishAt'); if (dupPublish) dupPublish.value = ''; // cópia não nasce destacada
         document.getElementById('published').checked = false; // cópia nasce como rascunho por segurança
         document.getElementById('description').value = article.description || '';
         document.getElementById('readMoreText').value = article.readMoreText || 'Leia Mais';
@@ -515,6 +580,8 @@ const Admin = {
         }
 
         this.openNewsModal(true);
+        this.currentGallery = Array.isArray(article.gallery) ? [...article.gallery] : [];
+        this.renderGalleryPreviews();
         document.getElementById('news-id').value = article.id || '';
         document.getElementById('title').value = article.title || '';
         document.getElementById('link').value = article.link || '';
@@ -523,6 +590,8 @@ const Admin = {
         document.getElementById('featured').checked = Boolean(article.featured);
         document.getElementById('published').checked = article.published !== false;
         document.getElementById('date').value = article.date || '';
+        const publishAtInput = document.getElementById('publishAt');
+        if (publishAtInput) publishAtInput.value = article.publishAt ? article.publishAt.slice(0, 16) : '';
         document.getElementById('displayDate').value = article.displayDate || '';
         document.getElementById('description').value = article.description || '';
         document.getElementById('readMoreText').value = article.readMoreText || 'Leia Mais';
@@ -537,6 +606,8 @@ const Admin = {
             imgPreview.src = article.imageUrl;
             imgPreview.classList.add('visible');
         }
+        this.currentGallery = [];
+        this.renderGalleryPreviews();
         this.updateLivePreview();
     },
 
@@ -591,6 +662,8 @@ const Admin = {
 
         const idField = document.getElementById('news-id');
         if (idField) idField.value = '';
+        const publishAtInput = document.getElementById('publishAt');
+        if (publishAtInput) publishAtInput.value = '';
 
         const editModeField = document.getElementById('edit-mode');
         if (editModeField) editModeField.value = 'false';
@@ -635,7 +708,10 @@ const Admin = {
             description: document.getElementById('description').value.trim(),
             readMoreText: document.getElementById('readMoreText').value.trim() || 'Leia Mais',
             instagramLink: document.getElementById('instagramLink').value.trim(),
-            altText: document.getElementById('altText').value.trim()
+            altText: document.getElementById('altText').value.trim(),
+            gallery: this.currentGallery || [],
+            publishAt: document.getElementById('publishAt')?.value ? new Date(document.getElementById('publishAt').value).toISOString() : null,
+            views: isEdit ? (this.allNews.find(n => n.id === document.getElementById('news-id').value)?.views || 0) : 0
         };
 
         if (!this.isValidURL(article.link)) {

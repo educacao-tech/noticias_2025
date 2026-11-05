@@ -1,6 +1,8 @@
 const App = {
     async init() {
         this.theme.init();
+        this.accessibility.init();
+        this.pwa.init();
         this.lightbox.init();
         await this.news.init();
         this.filter.init();
@@ -10,6 +12,109 @@ const App = {
     /**
      * Módulo para gerenciar o tema (claro/escuro).
      */
+    
+    /**
+     * Módulo de Acessibilidade Visual (Fontes e Alto Contraste).
+     */
+    accessibility: {
+        currentSize: 16,
+        init() {
+            const savedSize = localStorage.getItem('user_font_size');
+            if (savedSize) {
+                this.currentSize = parseInt(savedSize, 10);
+                document.documentElement.style.fontSize = this.currentSize + 'px';
+            }
+            const highContrast = localStorage.getItem('high_contrast') === 'true';
+            if (highContrast) {
+                document.body.classList.add('high-contrast');
+            }
+        },
+
+        changeFontSize(delta) {
+            this.currentSize = Math.min(24, Math.max(13, this.currentSize + delta * 2));
+            document.documentElement.style.fontSize = this.currentSize + 'px';
+            localStorage.setItem('user_font_size', this.currentSize);
+        },
+
+        resetFontSize() {
+            this.currentSize = 16;
+            document.documentElement.style.fontSize = '16px';
+            localStorage.removeItem('user_font_size');
+        },
+
+        toggleContrast() {
+            const isHc = document.body.classList.toggle('high-contrast');
+            localStorage.setItem('high_contrast', isHc ? 'true' : 'false');
+        }
+    },
+
+    /**
+     * Módulo PWA (Progressive Web App - Instalação no Celular e Cache Offline).
+     */
+    pwa: {
+        deferredPrompt: null,
+        init() {
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js').catch(() => {});
+                });
+            }
+
+            const installBtn = document.getElementById('btn-install-pwa');
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPrompt = e;
+                if (installBtn) installBtn.classList.remove('hidden');
+            });
+
+            if (installBtn) {
+                installBtn.addEventListener('click', async () => {
+                    if (this.deferredPrompt) {
+                        this.deferredPrompt.prompt();
+                        const { outcome } = await this.deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            installBtn.classList.add('hidden');
+                        }
+                        this.deferredPrompt = null;
+                    }
+                });
+            }
+        }
+    },
+
+    /**
+     * Módulo de Reações com Emojis (❤️, 👏, 💡, 🎉)
+     */
+    reactions: {
+        async react(articleId, reactionType, btnElement) {
+            const storageKey = `reacted_${articleId}_${reactionType}`;
+            if (localStorage.getItem(storageKey)) {
+                App.share.showToast('Você já enviou esta reação para esta matéria!', 'info');
+                return;
+            }
+
+            btnElement.classList.add('react-popped');
+            setTimeout(() => btnElement.classList.remove('react-popped'), 400);
+
+            const countSpan = btnElement.querySelector('.reaction-count');
+            if (countSpan) {
+                const cur = parseInt(countSpan.textContent, 10) || 0;
+                countSpan.textContent = cur + 1;
+            }
+            btnElement.classList.add('user-reacted');
+            localStorage.setItem(storageKey, 'true');
+
+            const API_BASE = (window.location.protocol === 'http:' || window.location.protocol === 'https:') ? '' : 'http://localhost:3001';
+            try {
+                await fetch(`${API_BASE}/api/news/react`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: articleId, reaction: reactionType })
+                });
+            } catch (_) {}
+        }
+    },
+
     theme: {
         icons: {
             sun: '<path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 12c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1H3c-.55 0-1 .45-1 1zm18 0c0 .55.45 1 1 1h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1zm-8-8c.55 0 1-.45 1-1V1c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zm0 16c.55 0 1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1v2c0 .55.45 1 1 1zM5.64 5.64c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L5.64 2.81c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.42zM18.36 18.36c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41l-1.41-1.41c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l1.41 1.41zM5.64 18.36c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41zM18.36 5.64c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.41-1.41c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0l-1.41 1.41z" />',
@@ -375,7 +480,25 @@ const App = {
                             <a href="${article.link}" target="_blank" rel="noopener noreferrer" onclick="App.views.record('${article.id}')">${article.title}</a>
                         </h2>
                         <time class="news-date" style="margin-bottom: 12px; font-weight: 600;">📅 ${article.displayDate || article.date}</time>
-                        <p class="hero-desc">${article.description}</p>
+                        <div class="hero-desc news-description">${this.formatDescription(article.description)}</div>
+                        <div class="reaction-bar" aria-label="Reações à matéria" style="margin-bottom: 12px;">
+                            <button type="button" class="reaction-btn" onclick="App.reactions.react('${article.id}', 'love', this)" title="Adorei">
+                                <span class="emoji-icon">❤️</span>
+                                <span class="reaction-count">${(article.reactions && article.reactions.love) || 0}</span>
+                            </button>
+                            <button type="button" class="reaction-btn" onclick="App.reactions.react('${article.id}', 'clap', this)" title="Parabéns">
+                                <span class="emoji-icon">👏</span>
+                                <span class="reaction-count">${(article.reactions && article.reactions.clap) || 0}</span>
+                            </button>
+                            <button type="button" class="reaction-btn" onclick="App.reactions.react('${article.id}', 'idea', this)" title="Inspirador">
+                                <span class="emoji-icon">💡</span>
+                                <span class="reaction-count">${(article.reactions && article.reactions.idea) || 0}</span>
+                            </button>
+                            <button type="button" class="reaction-btn" onclick="App.reactions.react('${article.id}', 'party', this)" title="Comemorar">
+                                <span class="emoji-icon">🎉</span>
+                                <span class="reaction-count">${(article.reactions && article.reactions.party) || 0}</span>
+                            </button>
+                        </div>
                         <div class="hero-footer">
                             <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="read-more" style="font-weight: 700; color: var(--primary-color);" onclick="App.views.record('${article.id}')">
                                 Ler matéria completa →
@@ -437,7 +560,25 @@ const App = {
                         <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="stretched-link" onclick="App.views.record('${article.id}')">
                             <h3>${title}</h3>
                         </a>
-                        <p>${description}</p>
+                        <div class="news-description" style="font-size: 0.88rem; line-height: 1.5; margin-bottom: 8px;">${this.formatDescription(description)}</div>
+                        <div class="reaction-bar" aria-label="Reações à matéria" onclick="event.stopPropagation()">
+                            <button type="button" class="reaction-btn" onclick="App.reactions.react('${article.id}', 'love', this)" title="Adorei">
+                                <span class="emoji-icon">❤️</span>
+                                <span class="reaction-count">${(article.reactions && article.reactions.love) || 0}</span>
+                            </button>
+                            <button type="button" class="reaction-btn" onclick="App.reactions.react('${article.id}', 'clap', this)" title="Parabéns">
+                                <span class="emoji-icon">👏</span>
+                                <span class="reaction-count">${(article.reactions && article.reactions.clap) || 0}</span>
+                            </button>
+                            <button type="button" class="reaction-btn" onclick="App.reactions.react('${article.id}', 'idea', this)" title="Inspirador">
+                                <span class="emoji-icon">💡</span>
+                                <span class="reaction-count">${(article.reactions && article.reactions.idea) || 0}</span>
+                            </button>
+                            <button type="button" class="reaction-btn" onclick="App.reactions.react('${article.id}', 'party', this)" title="Comemorar">
+                                <span class="emoji-icon">🎉</span>
+                                <span class="reaction-count">${(article.reactions && article.reactions.party) || 0}</span>
+                            </button>
+                        </div>
                         
                         <div class="card-footer" style="margin-top: 10px;">
                             <span class="read-more">${article.readMoreText || 'Leia Mais'} →</span>
@@ -467,6 +608,24 @@ const App = {
             } catch (_) {
                 App.lightbox.open([decodeURIComponent(encodedImages)], 0, title);
             }
+        },
+
+        
+        formatDescription(text) {
+            if (!text) return '';
+            let safe = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            // Negrito **texto**
+            safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Itálico *texto*
+            safe = safe.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Links [texto](url)
+            safe = safe.replace(/\[(.*?)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+            // Citação > "texto"
+            safe = safe.replace(/^> "(.*?)"/gm, '<blockquote style="border-left: 3px solid var(--primary-color); padding-left: 8px; margin: 4px 0; font-style: italic; color: var(--light-text-color);">$1</blockquote>');
+            return safe;
         },
 
         calcReadingTime(text) {

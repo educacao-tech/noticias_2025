@@ -1,5 +1,31 @@
 [
     {
+        "id": "c680eed3-a6e9-4a62-98c8-b0efe2ce6bff",
+        "title": "MATRÍCULAS PARA A EJA E O 1º ANO DO ENSINO FUNDAMENTAL COMEÇARAM NESTA TERÇA-FEIRA (3)",
+        "link": "https://www.batatais.sp.gov.br/noticias/matriculas-para-o-1%C2%BA-ano-do-ensino-fundamental-e-para-a-eja-e-comecam-nesta-terca",
+        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3947_570_370_202611031434401004140.jpeg",
+        "date": "2026-11-03",
+        "displayDate": "03 de Novembro de 2026",
+        "description": "Inscrições para o ano letivo de 2027 seguem até 30 de novembro; atendimento para a Educação de Jovens e Adultos será realizado na EMEB Professora Esther Vianna Bologna",
+        "readMoreText": "Leia Mais",
+        "instagramLink": "",
+        "altText": "",
+        "category": "Educação Básica",
+        "featured": false,
+        "published": true,
+        "views": 0,
+        "gallery": [
+            "/uploads/news_1793885774308_452793f9.jpg"
+        ],
+        "publishAt": null,
+        "reactions": {
+            "love": 0,
+            "clap": 0,
+            "idea": 0,
+            "party": 0
+        }
+    },
+    {
         "published": true,
         "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3894_570_370_202605281647491500000.jpeg",
         "altText": "Batatais é selecionada pelo MEC para integrar Mapa de Experiências Inspiradoras da Educação Integral em Tempo Integral",
@@ -12,7 +38,15 @@
         "readMoreText": "Leia Mais",
         "id": "fde4672c-69ca-45d1-a7a0-16a276eb3b3f",
         "views": 66,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 22,
+            "clap": 17,
+            "idea": 15,
+            "party": 7
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -27,7 +61,15 @@
         "readMoreText": "Leia Mais",
         "id": "f993d3e8-4385-4be6-9f3d-34762b1b3e21",
         "views": 146,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 12,
+            "clap": 21,
+            "idea": 9,
+            "party": 7
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -42,7 +84,15 @@
         "readMoreText": "Leia Mais",
         "id": "589b94b7-f963-4eab-9cfa-0f3fc1abdfed",
         "views": 77,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 5,
+            "clap": 13,
+            "idea": 4,
+            "party": 13
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -57,7 +107,15 @@
         "readMoreText": "Leia Mais",
         "id": "a2991580-a78a-44d2-a2d3-9268feba6b3b",
         "views": 214,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 25,
+            "clap": 21,
+            "idea": 3,
+            "party": 4
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -72,7 +130,15 @@
         "readMoreText": "Leia Mais",
         "id": "6b2b638d-a63b-411a-ab42-a9b097d45ddd",
         "views": 136,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 22,
+            "clap": 20,
+            "idea": 13,
+            "party": 13
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -87,7 +153,15 @@
         "readMoreText": "Leia Mais",
         "id": "99cd2736-966a-4b6c-b161-e9a1ac56260c",
         "views": 178,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 11,
+            "clap": 9,
+            "idea": 7,
+            "party": 12
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -102,7 +176,15 @@
         "readMoreText": "Leia Mais",
         "id": "77b0c12f-6e24-43ac-9493-eca85dbe7154",
         "views": 125,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 25,
+            "clap": 12,
+            "idea": 8,
+            "party": 12
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -117,7 +199,15 @@
         "readMoreText": "Leia Mais",
         "id": "5d27f97c-73d5-4bd0-9dfa-7151921e7cca",
         "views": 204,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 19,
+            "clap": 18,
+            "idea": 8,
+            "party": 5
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -131,8 +221,16 @@
         "description": "A Prefeitura de Batatais, por meio da Secretaria Municipal de Educação, está com matrículas abertas para a EJA (Educação de Jovens e Adultos), modalidade voltada a pessoas que não concluíram os estudos na idade regular e desejam retomar a vida escolar em 2026.",
         "readMoreText": "Leia Mais",
         "id": "614e8b61-0e1a-48ab-92db-04f4da480e36",
-        "views": 262,
-        "gallery": []
+        "views": 263,
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 13,
+            "clap": 9,
+            "idea": 4,
+            "party": 4
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -147,7 +245,15 @@
         "readMoreText": "Leia Mais",
         "id": "42d2047f-51e8-4fb8-bd8e-851ae13e904c",
         "views": 174,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 5,
+            "clap": 6,
+            "idea": 7,
+            "party": 13
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -162,7 +268,15 @@
         "readMoreText": "Leia Mais",
         "id": "48dea77e-6ed5-45e7-b25a-1c0462557aab",
         "views": 58,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 27,
+            "clap": 4,
+            "idea": 8,
+            "party": 9
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -177,7 +291,15 @@
         "readMoreText": "Leia Mais",
         "id": "2344d064-e219-49e5-97d1-65d3ce23538c",
         "views": 159,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 10,
+            "clap": 19,
+            "idea": 13,
+            "party": 10
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -192,7 +314,15 @@
         "readMoreText": "Assista Agora",
         "id": "98fa70d5-6f10-47da-a060-35f0874259f1",
         "views": 132,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 22,
+            "clap": 6,
+            "idea": 9,
+            "party": 10
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -207,7 +337,15 @@
         "readMoreText": "Leia Mais",
         "id": "5d566fdd-4828-41f5-9c01-b5132c775387",
         "views": 170,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 11,
+            "clap": 13,
+            "idea": 6,
+            "party": 6
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -222,7 +360,15 @@
         "readMoreText": "Leia Mais",
         "id": "33506ee1-1cae-46d6-b11f-ea884d935a65",
         "views": 163,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 13,
+            "clap": 6,
+            "idea": 4,
+            "party": 5
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -237,7 +383,15 @@
         "readMoreText": "Leia Mais",
         "id": "2dbd062c-861d-48a5-9d3a-bd7ffc182f0d",
         "views": 46,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 26,
+            "clap": 19,
+            "idea": 10,
+            "party": 6
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -252,7 +406,15 @@
         "readMoreText": "Leia Mais",
         "id": "7881c622-f589-4b93-9c03-ae06a44c9a70",
         "views": 183,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 8,
+            "clap": 11,
+            "idea": 12,
+            "party": 9
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -267,7 +429,15 @@
         "readMoreText": "Assista Agora",
         "id": "05734d9d-cb7b-4803-bf09-b7249440ec9c",
         "views": 53,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 26,
+            "clap": 18,
+            "idea": 9,
+            "party": 8
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -282,7 +452,15 @@
         "readMoreText": "Leia Mais",
         "id": "306dd322-bfb6-41bb-b53c-e981daf54da0",
         "views": 121,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 6,
+            "clap": 12,
+            "idea": 6,
+            "party": 3
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -297,7 +475,15 @@
         "readMoreText": "Assista Agora",
         "id": "d309b174-c1e7-4f6c-bd7b-0c5f065a8434",
         "views": 51,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 29,
+            "clap": 4,
+            "idea": 8,
+            "party": 6
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -312,7 +498,15 @@
         "readMoreText": "Leia Mais",
         "id": "7b89a397-b3bb-490f-ab99-987a888880db",
         "views": 226,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 25,
+            "clap": 11,
+            "idea": 15,
+            "party": 12
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -327,7 +521,15 @@
         "readMoreText": "Leia Mais",
         "id": "a7aab121-df1f-45c9-b7bb-eb2282bb7452",
         "views": 247,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 18,
+            "clap": 21,
+            "idea": 3,
+            "party": 3
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -342,7 +544,15 @@
         "readMoreText": "Leia Mais",
         "id": "738e94f1-176c-4468-a768-037800858c3b",
         "views": 127,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 24,
+            "clap": 16,
+            "idea": 9,
+            "party": 3
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -357,7 +567,15 @@
         "readMoreText": "Leia Mais",
         "id": "8ec1d947-1abf-4ae6-9c38-b8a1b6bf4569",
         "views": 85,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 28,
+            "clap": 6,
+            "idea": 6,
+            "party": 7
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -372,7 +590,15 @@
         "readMoreText": "Leia Mais",
         "id": "1dea4c53-7e75-46ee-ae21-21b5a2310da9",
         "views": 247,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 8,
+            "clap": 22,
+            "idea": 11,
+            "party": 9
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -387,7 +613,15 @@
         "readMoreText": "Leia Mais",
         "id": "578fdee1-24fa-4f17-b056-2df7eec13a21",
         "views": 111,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 9,
+            "clap": 11,
+            "idea": 13,
+            "party": 11
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -402,7 +636,15 @@
         "readMoreText": "Assista Agora",
         "id": "3e556f8a-a213-465f-9292-f172e6e2f0f4",
         "views": 189,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 25,
+            "clap": 23,
+            "idea": 17,
+            "party": 8
+        },
+        "publishAt": null
     },
     {
         "published": true,
@@ -417,7 +659,15 @@
         "readMoreText": "Leia Mais",
         "id": "d084ee23-cebc-43b3-987e-71172d230081",
         "views": 193,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 19,
+            "clap": 5,
+            "idea": 3,
+            "party": 8
+        },
+        "publishAt": null
     },
     {
         "id": "56513799-1c39-48d0-a4d3-ce681207a046",
@@ -432,7 +682,15 @@
         "altText": "",
         "published": true,
         "views": 66,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 16,
+            "clap": 6,
+            "idea": 13,
+            "party": 13
+        },
+        "publishAt": null
     },
     {
         "id": "88d76fcc-67e6-42ac-81ad-b00b623cebfc",
@@ -447,7 +705,15 @@
         "altText": "",
         "published": true,
         "views": 45,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 11,
+            "clap": 14,
+            "idea": 4,
+            "party": 3
+        },
+        "publishAt": null
     },
     {
         "id": "d20db4c8-6c4b-4bb1-8843-53cd7aa3a0a8",
@@ -462,6 +728,14 @@
         "altText": "",
         "published": true,
         "views": 60,
-        "gallery": []
+        "gallery": [],
+        "category": "Educação Básica",
+        "reactions": {
+            "love": 15,
+            "clap": 8,
+            "idea": 10,
+            "party": 3
+        },
+        "publishAt": null
     }
 ]

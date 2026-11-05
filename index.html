@@ -6,10 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal de Notícias - Secretaria Municipal de Educação</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a5276">
+    <meta name="description" content="Acompanhe as últimas notícias, projetos, eventos e avisos escolares da nossa rede de ensino.">
+    <!-- Metatags Open Graph & Redes Sociais -->
+    <meta property="og:title" content="Portal de Notícias - Secretaria Municipal de Educação">
+    <meta property="og:description" content="Acompanhe as últimas notícias, projetos, eventos e avisos escolares da nossa rede de ensino.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=80">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="apple-touch-icon" href="icon.svg">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+
+    <!-- Barra Superior de Acessibilidade & PWA -->
+    <aside class="accessibility-bar-container" aria-label="Recursos de Acessibilidade">
+        <div class="accessibility-bar">
+            <div class="accessibility-controls">
+                <span style="font-weight: 600; font-size: 0.8rem; margin-right: 4px;">Acessibilidade:</span>
+                <button type="button" id="btn-font-decrease" class="access-btn" title="Diminuir tamanho da fonte" onclick="App.accessibility.changeFontSize(-1)">A-</button>
+                <button type="button" id="btn-font-reset" class="access-btn" title="Tamanho normal de fonte" onclick="App.accessibility.resetFontSize()">A</button>
+                <button type="button" id="btn-font-increase" class="access-btn" title="Aumentar tamanho da fonte" onclick="App.accessibility.changeFontSize(1)">A+</button>
+                <button type="button" id="btn-contrast-toggle" class="access-btn" title="Alternar modo de Alto Contraste" onclick="App.accessibility.toggleContrast()">🌓 Alto Contraste</button>
+            </div>
+            <div>
+                <button type="button" id="btn-install-pwa" class="btn-install-pwa hidden" title="Instalar aplicativo no celular ou computador">
+                    📲 Instalar App
+                </button>
+            </div>
+        </div>
+    </aside>
+
 
     <main>
         <section class="latest-news" aria-labelledby="latest-news-title" role="region">

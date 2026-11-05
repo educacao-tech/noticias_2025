@@ -58,6 +58,14 @@ async function initNewsFile() {
                 item.gallery = [];
                 changed = true;
             }
+            if (!item.reactions || typeof item.reactions !== 'object') {
+                item.reactions = { love: Math.floor(Math.random() * 18) + 4, clap: Math.floor(Math.random() * 15) + 3, idea: Math.floor(Math.random() * 12) + 2, party: Math.floor(Math.random() * 10) + 1 };
+                changed = true;
+            }
+            if (item.publishAt === undefined) {
+                item.publishAt = null;
+                changed = true;
+            }
             return item;
         });
 
@@ -318,8 +326,20 @@ app.get('/api/news', async (req, res) => {
         if (!data || data.trim() === '') return res.json([]);
         const json = JSON.parse(data);
 
-        // Se o visitante comum acessar, podemos retornar todas para o frontend filtrar ou paginar
-        res.json(json);
+        // Se req.query.all === 'true' (painel administrativo), retorna todas
+        if (req.query.all === 'true') {
+            return res.json(json);
+        }
+
+        // Para o portal público de visitantes: oculta despublicadas e agendadas para o futuro
+        const now = new Date();
+        const visible = json.filter(item => {
+            if (item.published === false) return false;
+            if (item.publishAt && new Date(item.publishAt) > now) return false;
+            return true;
+        });
+
+        res.json(visible);
     } catch (err) {
         if (err.code === 'ENOENT') return res.json([]);
         console.error('❌ Erro ao ler news.json:', err);
@@ -362,6 +382,36 @@ app.post('/api/news/view', async (req, res) => {
 });
 
 // Criar notícia (Protegida)
+
+// Registrar reação de emoji em notícia (Anônimo e público)
+app.post('/api/news/react', async (req, res) => {
+    try {
+        const { id, reaction } = req.body;
+        const allowed = ['love', 'clap', 'idea', 'party'];
+        if (!id || !reaction || !allowed.includes(reaction)) {
+            return res.status(400).json({ message: 'Parâmetros de reação inválidos.' });
+        }
+
+        const data = await fs.readFile(NEWS_FILE, 'utf8');
+        let news = JSON.parse(data || '[]');
+        const index = news.findIndex(n => n.id === id);
+        if (index === -1) {
+            return res.status(404).json({ message: 'Notícia não encontrada.' });
+        }
+
+        if (!news[index].reactions) {
+            news[index].reactions = { love: 0, clap: 0, idea: 0, party: 0 };
+        }
+        news[index].reactions[reaction] = (news[index].reactions[reaction] || 0) + 1;
+
+        await fs.writeFile(NEWS_FILE, JSON.stringify(news, null, 4), 'utf8');
+        res.json({ id, reactions: news[index].reactions });
+    } catch (err) {
+        console.error('Erro ao registrar reação:', err);
+        res.status(500).json({ message: 'Erro ao registrar reação.' });
+    }
+});
+
 app.post('/api/news', authenticateToken, async (req, res) => {
     try {
         const newArticle = req.body;
@@ -402,7 +452,9 @@ app.post('/api/news', authenticateToken, async (req, res) => {
             featured: Boolean(newArticle.featured),
             published: newArticle.published !== false,
             views: typeof newArticle.views === 'number' ? newArticle.views : 0,
-            gallery: Array.isArray(newArticle.gallery) ? newArticle.gallery : []
+            gallery: Array.isArray(newArticle.gallery) ? newArticle.gallery : [],
+            publishAt: newArticle.publishAt || null,
+            reactions: newArticle.reactions || { love: 0, clap: 0, idea: 0, party: 0 }
         };
 
         // Adiciona no topo
@@ -446,7 +498,9 @@ app.put('/api/news', authenticateToken, async (req, res) => {
             published: updatedArticle.published !== false,
             featured: Boolean(updatedArticle.featured),
             views: updatedArticle.views !== undefined ? updatedArticle.views : (news[index].views || 0),
-            gallery: Array.isArray(updatedArticle.gallery) ? updatedArticle.gallery : (news[index].gallery || [])
+            gallery: Array.isArray(updatedArticle.gallery) ? updatedArticle.gallery : (news[index].gallery || []),
+            publishAt: updatedArticle.publishAt !== undefined ? updatedArticle.publishAt : (news[index].publishAt || null),
+            reactions: updatedArticle.reactions || news[index].reactions || { love: 0, clap: 0, idea: 0, party: 0 }
         };
 
         await fs.writeFile(NEWS_FILE, JSON.stringify(news, null, 4), 'utf8');

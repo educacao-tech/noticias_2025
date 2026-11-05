@@ -1432,3 +1432,232 @@ html[data-theme="dark"] #login-section {
     gap: 3px;
     font-weight: 600;
 }
+
+
+/* ========================================================
+   Barra Superior de Acessibilidade & PWA
+   ======================================================== */
+.accessibility-bar-container {
+    width: 100%;
+    background: #153243;
+    color: #f0f4f8;
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.accessibility-bar {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.accessibility-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.access-btn {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.access-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+}
+
+.access-btn:active {
+    transform: translateY(0);
+}
+
+.btn-install-pwa {
+    background: #27ae60;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(39, 174, 96, 0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-install-pwa:hover {
+    background: #2ecc71;
+    transform: scale(1.04);
+}
+
+.btn-install-pwa.hidden {
+    display: none !important;
+}
+
+/* ========================================================
+   Modo Alto Contraste (Acessibilidade Visual)
+   ======================================================== */
+body.high-contrast {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+body.high-contrast .accessibility-bar-container {
+    background: #000000 !important;
+    border-bottom: 2px solid #ffff00 !important;
+}
+
+body.high-contrast .news-card,
+body.high-contrast .hero-featured-card,
+body.high-contrast .category-pill,
+body.high-contrast .access-btn,
+body.high-contrast select,
+body.high-contrast input {
+    background: #111111 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffff00 !important;
+    box-shadow: none !important;
+}
+
+body.high-contrast .news-card h3 a,
+body.high-contrast .hero-content h2 a,
+body.high-contrast h1,
+body.high-contrast .category-pill.active {
+    color: #ffff00 !important;
+}
+
+body.high-contrast .category-pill.active {
+    background: #ffff00 !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+}
+
+body.high-contrast .news-meta,
+body.high-contrast .badge-views,
+body.high-contrast .news-content p {
+    color: #e0e0e0 !important;
+}
+
+body.high-contrast .reaction-btn {
+    border-color: #ffff00 !important;
+    color: #ffffff !important;
+    background: #000000 !important;
+}
+
+body.high-contrast .reaction-btn.user-reacted {
+    background: #ffff00 !important;
+    color: #000000 !important;
+}
+
+/* ========================================================
+   Barra de Reações com Emojis (Micro-Interações)
+   ======================================================== */
+.reaction-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color, #e0e0e0);
+    flex-wrap: wrap;
+}
+
+.reaction-btn {
+    background: var(--card-bg-subtle, #f8f9fa);
+    border: 1px solid var(--border-color, #dcdde1);
+    color: var(--text-color, #2c3e50);
+    border-radius: 16px;
+    padding: 3px 8px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    user-select: none;
+}
+
+.reaction-btn:hover {
+    transform: scale(1.1);
+    border-color: #3498db;
+    background: #ebf5fb;
+}
+
+.reaction-btn:active {
+    transform: scale(0.92);
+}
+
+.reaction-btn.user-reacted {
+    background: #ebf5fb;
+    border-color: #3498db;
+    color: #2980b9;
+    font-weight: 700;
+}
+
+.reaction-btn .emoji-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.reaction-btn .reaction-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Animação pop ao reagir */
+@keyframes reactPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.35) rotate(-5deg); }
+    100% { transform: scale(1); }
+}
+
+.react-popped {
+    animation: reactPop 0.4s ease-out;
+}
+
+/* ========================================================
+   Formatação de Texto Enriquecido nas Matérias
+   ======================================================== */
+.news-description strong {
+    font-weight: 700;
+    color: var(--text-color, #2c3e50);
+}
+
+.news-description em {
+    font-style: italic;
+}
+
+.news-description ul {
+    margin: 6px 0 6px 18px;
+    padding: 0;
+}
+
+.news-description li {
+    margin-bottom: 3px;
+}
+
+.news-description a {
+    color: #1a5276;
+    text-decoration: underline;
+    font-weight: 600;
+}
