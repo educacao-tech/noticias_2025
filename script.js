@@ -208,6 +208,7 @@ const App = {
             this.downloadBtn = document.getElementById('lightbox-download-btn');
             this.prevBtn = document.getElementById('lightbox-prev-btn');
             this.nextBtn = document.getElementById('lightbox-next-btn');
+            this.thumbsContainer = document.getElementById('lightbox-thumbnails');
 
             if (!this.modal) return;
 
@@ -218,13 +219,29 @@ const App = {
                 }
             });
 
-            // Teclado
+            // Navegação por Teclado
             document.addEventListener('keydown', (e) => {
                 if (!this.modal.classList.contains('active')) return;
                 if (e.key === 'Escape') this.close();
                 if (e.key === 'ArrowLeft') this.prev();
                 if (e.key === 'ArrowRight') this.next();
             });
+
+            // Navegação por Toque (Swipe) em Celulares e Tablets
+            let touchStartX = 0;
+            let touchEndX = 0;
+            this.modal.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            this.modal.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                const diff = touchEndX - touchStartX;
+                if (Math.abs(diff) > 45) {
+                    if (diff < 0) this.next();
+                    else this.prev();
+                }
+            }, { passive: true });
         },
 
         open(images, startIndex = 0, caption = '') {
@@ -245,6 +262,13 @@ const App = {
             document.body.style.overflow = '';
         },
 
+        goTo(index) {
+            if (index >= 0 && index < this.images.length) {
+                this.currentIndex = index;
+                this.updateImage();
+            }
+        },
+
         updateImage() {
             const currentUrl = this.images[this.currentIndex];
             this.mainImg.src = currentUrl;
@@ -263,6 +287,22 @@ const App = {
             if (this.nextBtn) {
                 this.nextBtn.style.display = hasMultiple ? 'inline-flex' : 'none';
                 this.nextBtn.disabled = this.currentIndex === this.images.length - 1;
+            }
+
+            // Barra inferior de miniaturas da galeria
+            if (this.thumbsContainer) {
+                if (hasMultiple) {
+                    this.thumbsContainer.style.display = 'flex';
+                    this.thumbsContainer.innerHTML = this.images.map((img, i) => `
+                        <img src="${img}" class="lightbox-thumb ${i === this.currentIndex ? 'active' : ''}" 
+                             alt="Foto ${i + 1}" 
+                             onclick="App.lightbox.goTo(${i})"
+                             title="Ir para foto ${i + 1}">
+                    `).join('');
+                } else {
+                    this.thumbsContainer.style.display = 'none';
+                    this.thumbsContainer.innerHTML = '';
+                }
             }
         },
 
@@ -439,6 +479,18 @@ const App = {
             const endIndex = startIndex + this.itemsPerPage;
             const pageNews = gridItems.slice(startIndex, endIndex);
 
+            // Ajusta o layout do grid quando houver poucos cards (evita grandes vazios à direita)
+            if (this.container) {
+                this.container.classList.remove('has-1-card', 'has-2-cards', 'has-3-cards');
+                if (pageNews.length === 1) {
+                    this.container.classList.add('has-1-card');
+                } else if (pageNews.length === 2) {
+                    this.container.classList.add('has-2-cards');
+                } else if (pageNews.length === 3) {
+                    this.container.classList.add('has-3-cards');
+                }
+            }
+
             const gridHtml = pageNews.map(article => this.createArticleHtml(article)).join('');
 
             if (this.noResultsEl) {
@@ -461,13 +513,39 @@ const App = {
             const encodedGallery = encodeURIComponent(JSON.stringify(allImages));
             const safeTitle = (article.title || '').replace(/'/g, "\\'");
 
+            const galleryStripHtml = allImages.length > 1 ? `
+                <div class="card-gallery-strip" aria-label="Fotos da matéria" onclick="event.stopPropagation()">
+                    ${allImages.slice(0, 5).map((img, idx) => `
+                        <button type="button" class="card-gallery-thumb-btn" onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}', ${idx}); App.views.record('${article.id}');" title="Ver foto ${idx + 1} em alta resolução">
+                            <img src="${img}" alt="Miniatura ${idx + 1}" loading="lazy" onerror="this.src='${fallbackImg}'">
+                        </button>
+                    `).join('')}
+                    ${allImages.length > 5 ? `
+                        <button type="button" class="card-gallery-more-btn" onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}', 5); App.views.record('${article.id}');" title="Ver mais ${allImages.length - 5} fotos">
+                            +${allImages.length - 5}
+                        </button>
+                    ` : ''}
+                </div>
+            ` : '';
+
+            const hasExternal = article.link && article.link !== '#' && article.link.trim() !== '';
+            const mainAction = hasExternal 
+                ? `href="${article.link}" target="_blank" rel="noopener noreferrer"`
+                : `href="#" onclick="event.preventDefault(); App.news.openGallery('${encodedGallery}', '${safeTitle}', 0); App.views.record('${article.id}');"`;
+            const heroBtnText = (article.readMoreText && article.readMoreText !== 'Leia Mais') 
+                ? `${article.readMoreText} →` 
+                : (hasExternal ? 'Ler matéria completa →' : '🖼️ Ver Galeria de Fotos →');
+
             this.heroContainer.innerHTML = `
                 <div class="hero-card">
-                    <div class="hero-img-wrapper card-img-container" 
-                         onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}'); App.views.record('${article.id}');"
-                         title="Clique para ver a foto ampliada">
-                        <img src="${article.imageUrl || fallbackImg}" alt="${article.altText || article.title}" onerror="this.src='${fallbackImg}'">
-                        ${allImages.length > 1 ? `<span class="badge-gallery-count">🖼️ +${allImages.length - 1} fotos</span>` : ''}
+                    <div class="hero-media-wrapper">
+                        <div class="hero-img-wrapper card-img-container" 
+                             onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}', 0); App.views.record('${article.id}');"
+                             title="Clique para ver a foto ampliada">
+                            <img src="${article.imageUrl || fallbackImg}" alt="${article.altText || article.title}" onerror="this.src='${fallbackImg}'">
+                            ${allImages.length > 1 ? `<span class="badge-gallery-count">🖼️ +${allImages.length - 1} fotos</span>` : ''}
+                        </div>
+                        ${galleryStripHtml}
                     </div>
                     <div class="hero-content">
                         <div class="hero-badge-row">
@@ -477,7 +555,7 @@ const App = {
                             <span class="reading-time">⏱️ ${readingTime}</span>
                         </div>
                         <h2 class="hero-title">
-                            <a href="${article.link}" target="_blank" rel="noopener noreferrer" onclick="App.views.record('${article.id}')">${article.title}</a>
+                            <a ${mainAction} onclick="App.views.record('${article.id}')">${article.title}</a>
                         </h2>
                         <time class="news-date" style="margin-bottom: 12px; font-weight: 600;">📅 ${article.displayDate || article.date}</time>
                         <div class="hero-desc news-description">${this.formatDescription(article.description)}</div>
@@ -500,8 +578,8 @@ const App = {
                             </button>
                         </div>
                         <div class="hero-footer">
-                            <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="read-more" style="font-weight: 700; color: var(--primary-color);" onclick="App.views.record('${article.id}')">
-                                Ler matéria completa →
+                            <a ${mainAction} class="read-more" style="font-weight: 700; color: var(--primary-color);" onclick="App.views.record('${article.id}')">
+                                ${heroBtnText}
                             </a>
                             <div style="display: flex; gap: 8px;">
                                 <button class="card-tool-btn" onclick="App.speech.speak('${encodeURIComponent(article.title + '. ' + article.description)}'); App.views.record('${article.id}')">
@@ -539,15 +617,39 @@ const App = {
             const encodedGallery = encodeURIComponent(JSON.stringify(allImages));
             const safeTitle = (article.title || '').replace(/'/g, "\\'");
 
+            const galleryStripHtml = allImages.length > 1 ? `
+                <div class="card-gallery-strip" aria-label="Fotos adicionais da matéria" onclick="event.stopPropagation()">
+                    ${allImages.slice(0, 4).map((img, idx) => `
+                        <button type="button" class="card-gallery-thumb-btn" onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}', ${idx}); App.views.record('${article.id}');" title="Ver foto ${idx + 1} em alta resolução">
+                            <img src="${img}" alt="Miniatura ${idx + 1}" loading="lazy" onerror="this.src='${fallbackImg}'">
+                        </button>
+                    `).join('')}
+                    ${allImages.length > 4 ? `
+                        <button type="button" class="card-gallery-more-btn" onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}', 4); App.views.record('${article.id}');" title="Ver mais ${allImages.length - 4} fotos">
+                            +${allImages.length - 4}
+                        </button>
+                    ` : ''}
+                </div>
+            ` : '';
+
+            const hasExternal = article.link && article.link !== '#' && article.link.trim() !== '';
+            const mainAction = hasExternal 
+                ? `href="${article.link}" target="_blank" rel="noopener noreferrer"`
+                : `href="#" onclick="event.preventDefault(); App.news.openGallery('${encodedGallery}', '${safeTitle}', 0); App.views.record('${article.id}');"`;
+            const cardFooterText = (article.readMoreText && article.readMoreText !== 'Leia Mais') 
+                ? `${article.readMoreText} →` 
+                : (hasExternal ? 'Leia Mais →' : '🖼️ Ver Fotos →');
+
             return `
                 <article class="news-card">
-                    <div class="card-img-container" onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}'); App.views.record('${article.id}');" title="Clique para ver a foto ampliada">
+                    <div class="card-img-container" onclick="App.news.openGallery('${encodedGallery}', '${safeTitle}', 0); App.views.record('${article.id}');" title="Clique para ver a foto ampliada">
                         <img src="${article.imageUrl || fallbackImg}"
                              alt="${article.altText || article.title}"
                              loading="lazy"
                              onerror="this.src='${fallbackImg}'">
                         ${allImages.length > 1 ? `<span class="badge-gallery-count">🖼️ +${allImages.length - 1} fotos</span>` : ''}
                     </div>
+                    ${galleryStripHtml}
                     <div class="news-content">
                         <div class="card-meta">
                             <span class="badge-category">📂 ${article.category || 'Geral'}</span>
@@ -557,7 +659,7 @@ const App = {
                         <time class="news-date" datetime="${article.date}" style="margin-bottom: 6px; font-weight: 600;">
                             📅 ${article.displayDate || article.date}
                         </time>
-                        <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="stretched-link" onclick="App.views.record('${article.id}')">
+                        <a ${mainAction} class="stretched-link" onclick="App.views.record('${article.id}')">
                             <h3>${title}</h3>
                         </a>
                         <div class="news-description" style="font-size: 0.88rem; line-height: 1.5; margin-bottom: 8px;">${this.formatDescription(description)}</div>
@@ -581,7 +683,7 @@ const App = {
                         </div>
                         
                         <div class="card-footer" style="margin-top: 10px;">
-                            <span class="read-more">${article.readMoreText || 'Leia Mais'} →</span>
+                            <span class="read-more">${cardFooterText}</span>
                         </div>
 
                         <!-- Barra de Ferramentas / Social / Voz -->
@@ -601,12 +703,12 @@ const App = {
             `;
         },
 
-        openGallery(encodedImages, title) {
+        openGallery(encodedImages, title, startIndex = 0) {
             try {
                 const images = JSON.parse(decodeURIComponent(encodedImages));
-                App.lightbox.open(images, 0, title);
+                App.lightbox.open(images, startIndex, title);
             } catch (_) {
-                App.lightbox.open([decodeURIComponent(encodedImages)], 0, title);
+                App.lightbox.open([decodeURIComponent(encodedImages)], startIndex, title);
             }
         },
 

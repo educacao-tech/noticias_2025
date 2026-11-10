@@ -3,7 +3,7 @@
         "id": "c680eed3-a6e9-4a62-98c8-b0efe2ce6bff",
         "title": "MATRÍCULAS PARA A EJA E O 1º ANO DO ENSINO FUNDAMENTAL COMEÇARAM NESTA TERÇA-FEIRA (3)",
         "link": "https://www.batatais.sp.gov.br/noticias/matriculas-para-o-1%C2%BA-ano-do-ensino-fundamental-e-para-a-eja-e-comecam-nesta-terca",
-        "imageUrl": "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3947_570_370_202611031434401004140.jpeg",
+        "imageUrl": "/uploads/news_1793885774308_452793f9.jpg",
         "date": "2026-11-03",
         "displayDate": "03 de Novembro de 2026",
         "description": "Inscrições para o ano letivo de 2027 seguem até 30 de novembro; atendimento para a Educação de Jovens e Adultos será realizado na EMEB Professora Esther Vianna Bologna",
@@ -13,9 +13,9 @@
         "category": "Educação Básica",
         "featured": false,
         "published": true,
-        "views": 0,
+        "views": 2,
         "gallery": [
-            "/uploads/news_1793885774308_452793f9.jpg"
+            "https://www.batatais.sp.gov.br/uploads/noticias/capa/medium/news_3947_570_370_202611031434401004140.jpeg"
         ],
         "publishAt": null,
         "reactions": {
@@ -704,7 +704,7 @@
         "instagramLink": "https://www.instagram.com/p/DbBZptlxP_O/",
         "altText": "",
         "published": true,
-        "views": 45,
+        "views": 46,
         "gallery": [],
         "category": "Educação Básica",
         "reactions": {

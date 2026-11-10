@@ -172,52 +172,189 @@ const Admin = {
         const input = document.getElementById('gallery-file-input');
         if (!input) return;
         input.addEventListener('change', async (e) => {
-            const files = Array.from(e.target.files || []);
-            if (!files.length) return;
-            for (const file of files) {
-                try {
-                    const compressedBase64 = await this.compressImage(file);
-                    const token = localStorage.getItem('auth_token');
-                    const uploadRes = await fetch(this.UPLOAD_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ image: compressedBase64 })
-                    });
-                    if (uploadRes.ok) {
-                        const data = await uploadRes.json();
-                        this.currentGallery.push(data.url);
-                    } else {
-                        this.currentGallery.push(compressedBase64);
-                    }
-                } catch (err) {
-                    console.error('Erro ao adicionar foto à galeria:', err);
-                }
+            if (e.target.files && e.target.files.length) {
+                await this.handleMultipleImageFiles(e.target.files);
+                input.value = '';
             }
-            input.value = '';
-            this.renderGalleryPreviews();
         });
+    },
+
+    toggleUrlInput() {
+        const container = document.getElementById('url-input-container');
+        if (!container) return;
+        container.classList.toggle('hidden');
+        if (!container.classList.contains('hidden')) {
+            const input = document.getElementById('manual-image-url');
+            if (input) input.focus();
+        }
+    },
+
+    addManualPhotoUrl() {
+        const input = document.getElementById('manual-image-url');
+        const url = (input?.value || '').trim();
+
+        if (!url) {
+            this.showToast('Por favor, cole a URL da imagem.', 'error');
+            return;
+        }
+
+        if (!this.isValidURL(url)) {
+            this.showToast('URL inválida. O link deve começar com http:// ou https://', 'error');
+            return;
+        }
+
+        const urlInput = document.getElementById('imageUrl');
+        const currentCover = (urlInput?.value || '').trim();
+
+        if (!currentCover) {
+            urlInput.value = url;
+            this.showToast('Foto definida como Capa Principal!', 'success', 2000);
+        } else {
+            this.currentGallery.push(url);
+            this.showToast('Nova foto adicionada à Galeria!', 'success', 2000);
+        }
+
+        if (input) input.value = '';
+        this.renderGalleryPreviews();
+        this.updateLivePreview();
+    },
+
+    copyPhotoLink(url) {
+        if (!url) return;
+        const fullUrl = url.startsWith('/') ? `${window.location.origin}${url}` : url;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                this.showToast('📋 Link da foto copiado com sucesso!', 'success', 2000);
+            }).catch(() => {
+                prompt('Copie o link da foto:', fullUrl);
+            });
+        } else {
+            prompt('Copie o link da foto:', fullUrl);
+        }
+    },
+
+    setAsCover(index) {
+        if (index < 0 || index >= this.currentGallery.length) return;
+        const urlInput = document.getElementById('imageUrl');
+        const currentCover = (urlInput?.value || '').trim();
+        const newCover = this.currentGallery[index];
+
+        if (currentCover) {
+            this.currentGallery[index] = currentCover;
+        } else {
+            this.currentGallery.splice(index, 1);
+        }
+
+        if (urlInput) urlInput.value = newCover;
+        this.renderGalleryPreviews();
+        this.updateLivePreview();
+        this.showToast('Nova foto definida como Capa Principal!', 'success', 2000);
+    },
+
+    removeCoverPhoto() {
+        const urlInput = document.getElementById('imageUrl');
+        if (this.currentGallery && this.currentGallery.length > 0) {
+            const nextCover = this.currentGallery.shift();
+            if (urlInput) urlInput.value = nextCover;
+            this.showToast('Capa removida. A próxima foto da galeria virou a nova capa!', 'info', 2500);
+        } else {
+            if (urlInput) urlInput.value = '';
+            this.showToast('Foto de capa removida.', 'info', 1500);
+        }
+        this.renderGalleryPreviews();
+        this.updateLivePreview();
+    },
+
+    removeGalleryPhoto(index) {
+        if (index < 0 || index >= this.currentGallery.length) return;
+        this.currentGallery.splice(index, 1);
+        this.renderGalleryPreviews();
+        this.updateLivePreview();
+        this.showToast('Foto removida da galeria.', 'info', 1500);
     },
 
     renderGalleryPreviews() {
         const container = document.getElementById('gallery-previews');
         if (!container) return;
         container.innerHTML = '';
-        (this.currentGallery || []).forEach((imgUrl, index) => {
-            const item = document.createElement('div');
-            item.style.cssText = 'position: relative; width: 70px; height: 70px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);';
-            item.innerHTML = `
-                <img src="${imgUrl}" alt="Foto Galeria" style="width: 100%; height: 100%; object-fit: cover;">
-                <button type="button" title="Remover foto" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;">✕</button>
+
+        const coverUrl = (document.getElementById('imageUrl')?.value || '').trim();
+        const gallery = this.currentGallery || [];
+        const totalCount = (coverUrl ? 1 : 0) + gallery.length;
+
+        const badge = document.getElementById('gallery-counter-badge');
+        if (badge) {
+            badge.textContent = `${totalCount} ${totalCount === 1 ? 'imagem' : 'imagens'}${gallery.length > 0 ? ` (1 capa + ${gallery.length} galeria)` : ''}`;
+        }
+
+        // 1. Card da Foto de Capa
+        if (coverUrl) {
+            const coverCard = document.createElement('div');
+            coverCard.className = 'admin-photo-card is-cover';
+            coverCard.style.cssText = 'position: relative; width: 115px; height: 125px; border-radius: 8px; overflow: hidden; border: 2px solid #27ae60; box-shadow: 0 2px 8px rgba(39,174,96,0.25); background: var(--card-bg-color); display: flex; flex-direction: column;';
+            coverCard.innerHTML = `
+                <div style="position: relative; flex: 1; overflow: hidden;">
+                    <img src="${coverUrl}" alt="Foto de Capa" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=300&q=80'" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    <span style="position: absolute; top: 3px; left: 3px; background: #27ae60; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 5px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+                        ⭐ Capa
+                    </span>
+                    <button type="button" title="Remover Capa" onclick="Admin.removeCoverPhoto()" style="position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.65); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        ✕
+                    </button>
+                </div>
+                <div style="display: flex; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="Admin.copyPhotoLink('${coverUrl}')" title="Copiar link desta foto" style="flex: 1; border: none; background: var(--card-bg-color); color: var(--text-color); font-size: 0.65rem; font-weight: 600; padding: 4px 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 2px;">
+                        📋 Link
+                    </button>
+                    <span style="padding: 4px 6px; font-size: 0.65rem; background: #eafaf1; color: #1e8449; font-weight: 700;">
+                        Principal
+                    </span>
+                </div>
             `;
-            item.querySelector('button').addEventListener('click', () => {
-                this.currentGallery.splice(index, 1);
-                this.renderGalleryPreviews();
-            });
-            container.appendChild(item);
+            container.appendChild(coverCard);
+        }
+
+        // 2. Cards das Fotos Extras da Galeria
+        gallery.forEach((imgUrl, index) => {
+            const galCard = document.createElement('div');
+            galCard.className = 'admin-photo-card';
+            galCard.style.cssText = 'position: relative; width: 115px; height: 125px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.06); background: var(--card-bg-color); display: flex; flex-direction: column;';
+            galCard.innerHTML = `
+                <div style="position: relative; flex: 1; overflow: hidden;">
+                    <img src="${imgUrl}" alt="Foto Galeria ${index + 1}" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=300&q=80'" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    <span style="position: absolute; top: 3px; left: 3px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.65rem; font-weight: 600; padding: 2px 5px; border-radius: 4px;">
+                        Foto ${index + 2}
+                    </span>
+                    <button type="button" title="Remover foto da galeria" onclick="Admin.removeGalleryPhoto(${index})" style="position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.65); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        ✕
+                    </button>
+                </div>
+                <div style="display: flex; border-top: 1px solid var(--border-color);">
+                    <button type="button" onclick="Admin.copyPhotoLink('${imgUrl}')" title="Copiar link desta foto" style="flex: 1; border: none; border-right: 1px solid var(--border-color); background: var(--card-bg-color); color: var(--text-color); font-size: 0.65rem; font-weight: 600; padding: 4px 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 2px;">
+                        📋 Link
+                    </button>
+                    <button type="button" onclick="Admin.setAsCover(${index})" title="Definir esta imagem como a Capa Principal" style="flex: 1; border: none; background: var(--card-bg-color); color: var(--primary-color); font-size: 0.65rem; font-weight: 700; padding: 4px 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 2px;">
+                        ⭐ Capa
+                    </button>
+                </div>
+            `;
+            container.appendChild(galCard);
         });
+
+        // 3. Botão "+ Adicionar Mais Fotos"
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.title = 'Adicionar mais fotos da galeria ou computador';
+        addBtn.style.cssText = 'width: 115px; height: 125px; border-radius: 8px; border: 2px dashed var(--border-color); background: transparent; color: var(--light-text-color); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 0.75rem; font-weight: 600; transition: all 0.2s ease;';
+        addBtn.innerHTML = `
+            <span style="font-size: 1.5rem;">➕</span>
+            <span>Mais Fotos</span>
+        `;
+        addBtn.addEventListener('click', () => {
+            const fileInput = document.getElementById('image-file-input');
+            if (fileInput) fileInput.click();
+        });
+        container.appendChild(addBtn);
     },
 
     /* ================= Estatísticas / KPIs ================= */
@@ -548,7 +685,6 @@ const Admin = {
 
         this.openNewsModal(false);
         this.currentGallery = Array.isArray(article.gallery) ? [...article.gallery] : [];
-        this.renderGalleryPreviews();
         document.getElementById('title').value = `[CÓPIA] ${article.title}`;
         document.getElementById('link').value = article.link || '';
         document.getElementById('imageUrl').value = article.imageUrl || '';
@@ -567,6 +703,7 @@ const Admin = {
             imgPreview.classList.add('visible');
         }
 
+        this.renderGalleryPreviews();
         this.updateLivePreview();
         this.showToast('Notícia duplicada no formulário. Revise e salve!', 'info', 3000);
     },
@@ -581,7 +718,6 @@ const Admin = {
 
         this.openNewsModal(true);
         this.currentGallery = Array.isArray(article.gallery) ? [...article.gallery] : [];
-        this.renderGalleryPreviews();
         document.getElementById('news-id').value = article.id || '';
         document.getElementById('title').value = article.title || '';
         document.getElementById('link').value = article.link || '';
@@ -606,7 +742,6 @@ const Admin = {
             imgPreview.src = article.imageUrl;
             imgPreview.classList.add('visible');
         }
-        this.currentGallery = [];
         this.renderGalleryPreviews();
         this.updateLivePreview();
     },
@@ -677,6 +812,8 @@ const Admin = {
         const publishedCheck = document.getElementById('published');
         if (publishedCheck) publishedCheck.checked = true;
 
+        this.currentGallery = [];
+        this.renderGalleryPreviews();
         this.updateLivePreview();
     },
 
@@ -695,11 +832,20 @@ const Admin = {
         const token = localStorage.getItem('auth_token');
         const isEdit = document.getElementById('edit-mode').value === 'true';
 
+        let linkVal = (document.getElementById('link')?.value || '').trim();
+        if (!linkVal) linkVal = '#'; // Se não tiver link externo, assume '#' para abrir a galeria no portal
+
+        let coverVal = (document.getElementById('imageUrl')?.value || '').trim();
+        if (!coverVal && this.currentGallery && this.currentGallery.length > 0) {
+            coverVal = this.currentGallery[0];
+            document.getElementById('imageUrl').value = coverVal;
+        }
+
         const article = {
             id: document.getElementById('news-id').value,
             title: document.getElementById('title').value.trim(),
-            link: document.getElementById('link').value.trim(),
-            imageUrl: document.getElementById('imageUrl').value.trim(),
+            link: linkVal,
+            imageUrl: coverVal,
             category: document.getElementById('category').value,
             featured: document.getElementById('featured').checked,
             published: document.getElementById('published').checked,
@@ -714,8 +860,14 @@ const Admin = {
             views: isEdit ? (this.allNews.find(n => n.id === document.getElementById('news-id').value)?.views || 0) : 0
         };
 
-        if (!this.isValidURL(article.link)) {
-            this.showToast('O link da matéria deve ser uma URL válida (http:// ou https://).', 'error');
+        if (article.link !== '#' && !this.isValidURL(article.link)) {
+            this.showToast('O link da matéria deve ser uma URL válida (http:// ou https://) ou ser deixado em branco.', 'error');
+            btn.disabled = false;
+            return;
+        }
+
+        if (!article.imageUrl) {
+            this.showToast('Por favor, adicione ao menos uma foto (capa) para a notícia.', 'error');
             btn.disabled = false;
             return;
         }
@@ -828,9 +980,8 @@ const Admin = {
     /* ================= Upload Físico de Imagens com Compressão ================= */
     setupDragAndDrop() {
         const dropZone = document.getElementById('image-drop-zone');
-        const imageUrlInput = document.getElementById('imageUrl');
         const fileInput = document.getElementById('image-file-input');
-        if (!dropZone || !imageUrlInput) return;
+        if (!dropZone) return;
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, (e) => {
@@ -845,8 +996,8 @@ const Admin = {
         if (fileInput) {
             dropZone.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', async (e) => {
-                if (e.target.files && e.target.files[0]) {
-                    await this.handleImageFile(e.target.files[0], imageUrlInput);
+                if (e.target.files && e.target.files.length) {
+                    await this.handleMultipleImageFiles(e.target.files);
                     fileInput.value = '';
                 }
             });
@@ -855,22 +1006,16 @@ const Admin = {
         dropZone.addEventListener('drop', async (e) => {
             dropZone.classList.remove('drag-over');
             const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type.startsWith('image/')) {
-                await this.handleImageFile(files[0], imageUrlInput);
-            } else {
-                this.showToast('Por favor, envie apenas arquivos de imagem.', 'error');
+            if (files && files.length > 0) {
+                await this.handleMultipleImageFiles(files);
             }
         });
     },
 
-    async handleImageFile(file, targetInput) {
-        this.showToast('Otimizando imagem para salvar no servidor...', 'info', 1500);
+    async uploadSingleImage(file) {
+        const compressedBase64 = await this.compressImage(file);
+        const token = localStorage.getItem('auth_token');
         try {
-            // 1. Comprime a imagem no canvas do navegador
-            const compressedBase64 = await this.compressImage(file);
-
-            // 2. Tenta fazer upload para o endpoint /api/upload
-            const token = localStorage.getItem('auth_token');
             const uploadRes = await fetch(this.UPLOAD_URL, {
                 method: 'POST',
                 headers: {
@@ -882,15 +1027,52 @@ const Admin = {
 
             if (uploadRes.ok) {
                 const data = await uploadRes.json();
-                targetInput.value = data.url; // Salva o caminho limpo /uploads/...
-                this.showToast('Imagem salva no servidor com sucesso!', 'success', 2500);
-            } else {
-                // Fallback: se falhar o endpoint, salva o base64 comprimido
-                targetInput.value = compressedBase64;
-                this.showToast('Imagem otimizada pronta para salvar!', 'info', 2000);
+                return data.url;
             }
+        } catch (_) {}
+        return compressedBase64;
+    },
 
-            targetInput.dispatchEvent(new Event('input'));
+    async handleMultipleImageFiles(fileList) {
+        const files = Array.from(fileList || []).filter(f => f.type && f.type.startsWith('image/'));
+        if (!files.length) {
+            this.showToast('Por favor, envie apenas arquivos de imagem.', 'error');
+            return;
+        }
+
+        const imageUrlInput = document.getElementById('imageUrl');
+        this.showToast(`Otimizando e enviando ${files.length} ${files.length === 1 ? 'foto' : 'fotos'}...`, 'info', 2000);
+
+        let added = 0;
+        for (const file of files) {
+            try {
+                const url = await this.uploadSingleImage(file);
+                if (!imageUrlInput.value.trim()) {
+                    imageUrlInput.value = url;
+                } else {
+                    this.currentGallery.push(url);
+                }
+                added++;
+            } catch (err) {
+                console.error('Erro no upload de foto:', err);
+            }
+        }
+
+        this.renderGalleryPreviews();
+        this.updateLivePreview();
+        this.showToast(`✅ ${added} ${added === 1 ? 'foto adicionada' : 'fotos adicionadas'} com sucesso!`, 'success', 2500);
+    },
+
+    async handleImageFile(file, targetInput) {
+        try {
+            const url = await this.uploadSingleImage(file);
+            if (targetInput) {
+                targetInput.value = url;
+                targetInput.dispatchEvent(new Event('input'));
+            }
+            this.renderGalleryPreviews();
+            this.updateLivePreview();
+            this.showToast('Imagem processada com sucesso!', 'success', 2000);
         } catch (err) {
             console.error('Erro no processamento da imagem:', err);
             this.showToast('Não foi possível processar a imagem.', 'error');
@@ -1294,20 +1476,25 @@ const Admin = {
         const imageUrlInput = document.getElementById('imageUrl');
         const imagePreview = document.getElementById('image-preview');
 
-        if (!imageUrlInput || !imagePreview) return;
+        if (!imageUrlInput) return;
 
         imageUrlInput.addEventListener('input', () => {
             const url = imageUrlInput.value.trim();
-            if (this.isValidURL(url)) {
-                imagePreview.src = url;
-                imagePreview.classList.add('visible');
-            } else {
-                imagePreview.classList.remove('visible');
+            if (imagePreview) {
+                if (this.isValidURL(url)) {
+                    imagePreview.src = url;
+                    imagePreview.classList.add('visible');
+                } else {
+                    imagePreview.classList.remove('visible');
+                }
             }
+            this.renderGalleryPreviews();
             this.updateLivePreview();
         });
 
-        imagePreview.onerror = () => imagePreview.classList.remove('visible');
+        if (imagePreview) {
+            imagePreview.onerror = () => imagePreview.classList.remove('visible');
+        }
     },
 
     setupLivePreview() {
@@ -1333,6 +1520,7 @@ const Admin = {
         const category = document.getElementById('category')?.value || 'Educação Básica';
         const isFeatured = document.getElementById('featured')?.checked;
         const instagramLink = (document.getElementById('instagramLink')?.value || '').trim();
+        const gallery = this.currentGallery || [];
 
         const instaBadge = instagramLink ? `
             <span style="font-size: 0.75rem; background: rgba(225,48,108,0.1); color: #e1306c; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
@@ -1346,9 +1534,30 @@ const Admin = {
             </span>
         ` : '';
 
+        const galleryBadge = gallery.length > 0 ? `
+            <span style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.75); color: #fff; font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                🖼️ +${gallery.length} fotos
+            </span>
+        ` : '';
+
+        const galleryStrip = gallery.length > 0 ? `
+            <div style="display: flex; gap: 4px; padding: 6px 12px; background: rgba(0,0,0,0.03); border-top: 1px solid var(--border-color); overflow-x: auto;">
+                ${gallery.slice(0, 4).map(img => `
+                    <img src="${img}" alt="Miniatura" style="width: 36px; height: 36px; border-radius: 4px; object-fit: cover; border: 1px solid var(--border-color); flex-shrink: 0;" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=100&q=80'">
+                `).join('')}
+                ${gallery.length > 4 ? `
+                    <span style="font-size: 0.72rem; align-self: center; color: var(--light-text-color); font-weight: 700; margin-left: 2px;">+${gallery.length - 4}</span>
+                ` : ''}
+            </div>
+        ` : '';
+
         container.innerHTML = `
             <div class="news-card visible" style="opacity: 1; transform: none; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <img src="${imageUrl}" alt="Prévia" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=500&q=80'">
+                <div style="position: relative; overflow: hidden;">
+                    <img src="${imageUrl}" alt="Prévia" onerror="this.src='https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=500&q=80'" style="width: 100%; height: 200px; object-fit: cover; display: block;">
+                    ${galleryBadge}
+                </div>
+                ${galleryStrip}
                 <div class="news-content">
                     <div class="card-meta" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 4px;">
                         <span style="font-size: 0.75rem; background: rgba(52,152,219,0.15); color: var(--primary-color); padding: 2px 6px; border-radius: 4px; font-weight: 600;">

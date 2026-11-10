@@ -261,8 +261,11 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="link">Link da Matéria Completa *</label>
-                        <input type="url" id="link" placeholder="https://www.batatais.sp.gov.br/noticias/..." required>
+                        <label for="link">Link da Matéria Completa (Opcional)</label>
+                        <input type="text" id="link" placeholder="https://... (Opcional: deixe vazio se for galeria de fotos)">
+                        <small style="color: var(--light-text-color); font-size: 0.78rem;">
+                            Se deixar em branco, ao clicar na notícia os visitantes abrirão diretamente as fotos em tela cheia.
+                        </small>
                     </div>
 
                     <div class="form-row-2col">
@@ -310,26 +313,63 @@
                         </small>
                     </div>
     
-                    <div class="form-group">
-                        <label for="imageUrl">URL da Imagem de Capa *</label>
-                        <input type="url" id="imageUrl" placeholder="https://... ou faça upload abaixo" required>
-                        <input type="file" id="image-file-input" accept="image/*" class="hidden">
-                        <div id="image-drop-zone" class="drop-zone" title="Clique ou arraste uma foto aqui" style="cursor: pointer;">
-                            🖼️ <strong>Clique para escolher</strong> ou arraste uma foto aqui
-                            <br>
-                            <small>(Será otimizada e salva no servidor automaticamente)</small>
+                    <!-- ================= Seção de Imagens da Notícia (Capa & Galeria) ================= -->
+                    <div class="form-group images-manager-container" style="background: var(--background-color); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                            <label style="margin: 0; font-weight: 700; font-size: 0.92rem;">📸 Imagens da Notícia (Capa & Galeria)</label>
+                            <span id="gallery-counter-badge" style="font-size: 0.78rem; background: rgba(52, 152, 219, 0.15); color: var(--primary-color); padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                                0 imagens
+                            </span>
                         </div>
-                        <img id="image-preview" src="" alt="Prévia da Imagem" class="hidden">
-                    </div>
+                        <p style="font-size: 0.8rem; color: var(--light-text-color); margin-top: 0; margin-bottom: 10px;">
+                            Adicione quantas fotos desejar! A primeira foto é a <strong>Capa Principal</strong> e as demais entram na <strong>Galeria</strong>. Você pode alterar qual foto é a capa a qualquer momento.
+                        </p>
 
-                    <div class="form-group" style="background: var(--background-color); padding: 12px; border-radius: 8px; border: 1px dashed var(--border-color);">
-                        <label style="margin-bottom: 6px;">📸 Galeria de Fotos Extras (Opcional)</label>
+                        <!-- Campo oculto da imagem principal (sincronizado automaticamente com a capa da galeria) -->
+                        <input type="hidden" id="imageUrl" value="">
+
+                        <!-- Botões de Ação para Fotos -->
+                        <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                            <button type="button" class="btn-secondary-action" onclick="document.getElementById('image-file-input').click()" style="padding: 8px 16px; font-size: 0.85rem; font-weight: 600; background: var(--primary-color); color: #fff; border-color: var(--primary-color); display: inline-flex; align-items: center; gap: 6px;">
+                                📁 Escolher Fotos da Galeria do Dispositivo
+                            </button>
+                            <button type="button" class="btn-secondary-action" onclick="Admin.toggleUrlInput()" style="padding: 8px 12px; font-size: 0.82rem;" title="Inserir imagem através de um link web">
+                                🔗 Colar Link Web (Opcional)
+                            </button>
+                        </div>
+
+                        <!-- Campo Opcional para Inserir Foto por Link Externo -->
+                        <div id="url-input-container" class="hidden" style="margin-bottom: 12px; background: rgba(0,0,0,0.03); padding: 8px 10px; border-radius: 6px; border: 1px dashed var(--border-color);">
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="manual-image-url" placeholder="Cole o link da foto (ex: https://...)" style="flex: 1; font-size: 0.85rem; padding: 6px 10px;">
+                                <button type="button" class="btn-secondary-action" onclick="Admin.addManualPhotoUrl()" style="white-space: nowrap; padding: 6px 12px; font-size: 0.82rem;">
+                                    Adicionar Link
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Inputs de Arquivos (Suportam múltipla seleção) -->
+                        <input type="file" id="image-file-input" accept="image/*" multiple class="hidden">
                         <input type="file" id="gallery-file-input" accept="image/*" multiple class="hidden">
-                        <button type="button" class="btn-secondary-action" onclick="document.getElementById('gallery-file-input').click()" style="padding: 6px 12px; font-size: 0.85rem;">
-                            ➕ Adicionar Fotos à Galeria
-                        </button>
-                        <div id="gallery-previews" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
-                            <!-- Miniaturas das fotos da galeria com botão de remover -->
+
+                        <!-- Drop Zone Inteligente com Múltiplos Arquivos -->
+                        <div id="image-drop-zone" class="drop-zone" title="Clique ou arraste uma ou várias fotos aqui" style="cursor: pointer; padding: 16px 12px;">
+                            <div style="font-size: 1.6rem; margin-bottom: 4px;">🖼️ 📸</div>
+                            <strong>Clique para escolher fotos</strong> ou arraste seus arquivos aqui
+                            <br>
+                            <small style="color: var(--light-text-color); font-size: 0.78rem;">
+                                Selecione uma ou mais imagens simultaneamente (serão comprimidas e enviadas automaticamente)
+                            </small>
+                        </div>
+
+                        <!-- Miniatura oculta para compatibilidade -->
+                        <img id="image-preview" src="" alt="Prévia da Imagem" class="hidden">
+
+                        <!-- Gerenciador Visual de Fotos (Capa + Galeria) -->
+                        <div style="margin-top: 12px;">
+                            <div id="gallery-previews" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+                                <!-- Inserido dinamicamente via Admin.renderGalleryPreviews() -->
+                            </div>
                         </div>
                     </div>
 

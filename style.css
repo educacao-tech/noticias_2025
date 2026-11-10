@@ -150,6 +150,21 @@ h1 {
     justify-content: center;
 }
 
+/* Distribuição harmônica quando houver poucos cards (filtros de categoria ou busca) */
+.news-preview-container.has-1-card {
+    grid-template-columns: minmax(280px, 480px);
+    justify-content: center;
+}
+
+.news-preview-container.has-2-cards {
+    grid-template-columns: repeat(2, minmax(280px, 460px));
+    justify-content: center;
+}
+
+.news-preview-container.has-3-cards {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 @media (max-width: 1200px) {
     .news-preview-container {
         grid-template-columns: repeat(3, 1fr);
@@ -157,13 +172,18 @@ h1 {
 }
 
 @media (max-width: 850px) {
-    .news-preview-container {
+    .news-preview-container,
+    .news-preview-container.has-2-cards,
+    .news-preview-container.has-3-cards {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 550px) {
-    .news-preview-container {
+    .news-preview-container,
+    .news-preview-container.has-1-card,
+    .news-preview-container.has-2-cards,
+    .news-preview-container.has-3-cards {
         grid-template-columns: 1fr;
     }
 }
@@ -794,7 +814,7 @@ html[data-theme="dark"] #login-section {
 }
 
 .modal-content.large {
-    max-width: 800px;
+    max-width: 1080px;
     width: 95%;
     padding: var(--spacing-large); /* Garante padding consistente para o modal grande */
     max-height: 90vh;
@@ -809,10 +829,11 @@ html[data-theme="dark"] #login-section {
 
 .modal-body-split form {
     flex: 1;
+    min-width: 0;
 }
 
 .preview-panel {
-    flex: 0 0 320px;
+    flex: 0 0 340px;
     position: sticky;
     top: 0;
 }
@@ -1113,13 +1134,40 @@ html[data-theme="dark"] #login-section {
     border-radius: calc(var(--border-radius) * 1.5);
     overflow: hidden;
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: 1fr 1.25fr;
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    align-items: stretch;
 }
 
 .hero-card:hover {
     box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+.hero-media-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: rgba(var(--text-color-rgb), 0.04);
+    height: 100%;
+}
+
+.hero-media-wrapper .hero-img-wrapper {
+    flex: 1;
+    min-height: 320px;
+    height: 100%;
+}
+
+.hero-media-wrapper .card-gallery-strip {
+    border-top: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.04);
+    flex-shrink: 0;
+    padding: 8px 14px;
+}
+
+.hero-media-wrapper .card-gallery-thumb-btn {
+    width: 52px;
+    height: 40px;
 }
 
 .hero-img-wrapper {
@@ -1136,7 +1184,7 @@ html[data-theme="dark"] #login-section {
 }
 
 .hero-content {
-    padding: 30px;
+    padding: 32px 36px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1196,8 +1244,9 @@ html[data-theme="dark"] #login-section {
     .hero-card {
         grid-template-columns: 1fr;
     }
-    .hero-img-wrapper {
-        min-height: 220px;
+    .hero-img-wrapper,
+    .hero-media-wrapper .hero-img-wrapper {
+        min-height: 240px;
     }
 }
 
@@ -1660,4 +1709,126 @@ body.high-contrast .reaction-btn.user-reacted {
     color: #1a5276;
     text-decoration: underline;
     font-weight: 600;
+}
+
+/* ========================================================
+   Galeria de Múltiplas Fotos nos Cards de Notícias
+   ======================================================== */
+.card-gallery-strip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.03);
+    border-top: 1px solid var(--border-color);
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+body.high-contrast .card-gallery-strip {
+    background: #000;
+    border-top: 1px solid #ffff00;
+}
+
+.card-gallery-thumb-btn {
+    width: 46px;
+    height: 36px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    background: #000;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+}
+
+.card-gallery-thumb-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.card-gallery-thumb-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.card-gallery-more-btn {
+    width: 46px;
+    height: 36px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: rgba(26, 82, 118, 0.9);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.card-gallery-more-btn:hover {
+    background: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* ========================================================
+   Faixa de Miniaturas no Lightbox Modal
+   ======================================================== */
+.lightbox-thumbnails {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    max-width: 90vw;
+    overflow-x: auto;
+    padding: 4px;
+    scrollbar-width: thin;
+}
+
+.lightbox-thumb {
+    width: 58px;
+    height: 42px;
+    border-radius: 4px;
+    object-fit: cover;
+    cursor: pointer;
+    opacity: 0.45;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.lightbox-thumb:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+}
+
+.lightbox-thumb.active {
+    opacity: 1;
+    border-color: #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.8);
+    transform: scale(1.08);
+}
+
+/* ========================================================
+   Estilos de Administração para Galeria de Fotos
+   ======================================================== */
+.admin-photo-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-photo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
 }

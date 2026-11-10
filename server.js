@@ -101,9 +101,10 @@ async function backupNewsDatabase() {
     }
 }
 
-// Validador de URL seguro (aceita URLs completas e relativas de upload)
+// Validador de URL seguro (aceita URLs completas e relativas de upload, ou '#' para notícias locais/galeria)
 function isValidURL(string) {
     if (!string || typeof string !== 'string') return false;
+    if (string === '#' || string === '') return true;
     if (string.startsWith('/uploads/') || string.startsWith('uploads/')) return true;
     try {
         const parsed = new URL(string);
@@ -416,7 +417,15 @@ app.post('/api/news', authenticateToken, async (req, res) => {
     try {
         const newArticle = req.body;
 
-        const requiredFields = ['title', 'description', 'link', 'date'];
+        // Se a capa estiver vazia mas houver galeria, usa a 1ª foto da galeria como capa
+        if (!newArticle.imageUrl && Array.isArray(newArticle.gallery) && newArticle.gallery.length > 0) {
+            newArticle.imageUrl = newArticle.gallery[0];
+        }
+
+        // Link da matéria é opcional (se vazio, assume '#' para abrir galeria no portal)
+        newArticle.link = (newArticle.link && newArticle.link.trim()) ? newArticle.link.trim() : '#';
+
+        const requiredFields = ['title', 'description', 'date', 'imageUrl'];
         const missingFields = requiredFields.filter(f => !newArticle[f]);
         if (missingFields.length > 0) {
             return res.status(400).json({ message: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
@@ -476,6 +485,12 @@ app.put('/api/news', authenticateToken, async (req, res) => {
         if (!updatedArticle.id) {
             return res.status(400).json({ message: 'ID da notícia não fornecido para atualização.' });
         }
+
+        if (!updatedArticle.imageUrl && Array.isArray(updatedArticle.gallery) && updatedArticle.gallery.length > 0) {
+            updatedArticle.imageUrl = updatedArticle.gallery[0];
+        }
+
+        updatedArticle.link = (updatedArticle.link && updatedArticle.link.trim()) ? updatedArticle.link.trim() : '#';
 
         if (!isValidURL(updatedArticle.link) || !isValidURL(updatedArticle.imageUrl)) {
             return res.status(400).json({ message: 'As URLs fornecidas para atualização são inválidas.' });
